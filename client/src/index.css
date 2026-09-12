@@ -241,6 +241,20 @@ input {
   color: var(--color-fg-default);
 }
 
+.cached-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 500;
+  background-color: var(--color-attention-muted);
+  color: var(--color-attention-fg);
+  border: 1px solid var(--color-attention-border);
+  white-space: nowrap;
+}
+
 .logout-btn {
   display: flex;
   align-items: center;
@@ -888,6 +902,20 @@ input {
   border-radius: var(--radius-md);
   margin-bottom: 1rem;
   font-size: 13px;
+}
+
+.warning-banner {
+  background-color: var(--color-attention-muted);
+  border: 1px solid var(--color-attention-border);
+  color: var(--color-fg-default);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  line-height: 1.45;
 }
 
 /* Blankslate (Empty State) */

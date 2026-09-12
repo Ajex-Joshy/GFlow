@@ -1,7 +1,6 @@
-import React from 'react';
-import { RefreshCw, LogOut, ExternalLink, Settings } from 'lucide-react';
+import { RefreshCw, LogOut, ExternalLink, Settings, Clock } from 'lucide-react';
 
-export default function Navbar({ user, onRefresh, isRefreshing, onLogout, onOpenSettings }) {
+export default function Navbar({ user, onRefresh, isRefreshing, onLogout, onOpenSettings, isStale = false }) {
   return (
     <header className="navbar">
       <div className="navbar-inner">
@@ -24,6 +23,15 @@ export default function Navbar({ user, onRefresh, isRefreshing, onLogout, onOpen
 
         {user && (
           <div className="nav-actions">
+            {isStale && (
+              <span
+                className="cached-pill"
+                title="GitHub API hourly rate limit exceeded. Currently displaying cached data."
+              >
+                <Clock size={11} />
+                <span>Cached Data</span>
+              </span>
+            )}
             <button
               className={`gh-btn ${isRefreshing ? 'spinning' : ''}`}
               onClick={onRefresh}

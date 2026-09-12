@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Search, GitPullRequest, GitMerge, Building2, Bot, Command, ArrowUpDown, GitFork, MessageSquare, Check } from 'lucide-react';
+import { Search, GitPullRequest, GitMerge, Building2, Bot, Command, ArrowUpDown, GitFork, MessageSquare, Check, AlertTriangle } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
@@ -9,6 +9,7 @@ import LoginView from './components/LoginView';
 import SettingsModal from './components/SettingsModal';
 import ShortcutsModal from './components/ShortcutsModal';
 import { loadSettings, saveSettings, isBotPR } from './utils/filterUtils';
+import { formatRelativeOnly } from './utils/dateFormatter';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -44,6 +45,7 @@ export default function App() {
   const [isLoadingPRs, setIsLoadingPRs] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [fetchError, setFetchError] = useState('');
+  const [staleNotice, setStaleNotice] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Ticker to force re-render every minute so timestamps like "1m ago" advance in real-time
@@ -106,6 +108,15 @@ export default function App() {
       setPrData(result.data || { reviewer: [], raised: [], raisedMerged: [], approved: [] });
       if (result.organizations) {
         setOrganizations(result.organizations);
+      }
+      if (result.isStale || result.rateLimited) {
+        setStaleNotice({
+          isStale: true,
+          fetchedAt: result.fetchedAt,
+          staleReason: result.staleReason || 'GitHub API hourly rate limit exceeded.',
+        });
+      } else {
+        setStaleNotice(null);
       }
     } catch (err) {
       console.error('Failed to load PRs:', err);
@@ -542,6 +553,7 @@ export default function App() {
         isRefreshing={isRefreshing}
         onLogout={handleLogout}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        isStale={Boolean(staleNotice)}
       />
 
       <main className="main-content">
@@ -600,6 +612,21 @@ export default function App() {
               </button>
             </div>
           </div>
+
+          {staleNotice && (
+            <div className="warning-banner">
+              <AlertTriangle size={18} style={{ flexShrink: 0, color: 'var(--color-attention-fg)' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                <span>
+                  <strong>Showing Cached Data:</strong> {staleNotice.staleReason}{' '}
+                  {staleNotice.fetchedAt ? `(Last synced ${formatRelativeOnly(staleNotice.fetchedAt)})` : ''}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--color-fg-muted)' }}>
+                  Your pull requests remain fully viewable and interactive. Fresh data will automatically update once GitHub&apos;s hourly limit resets.
+                </span>
+              </div>
+            </div>
+          )}
 
           {fetchError && (
             <div className="error-banner">
