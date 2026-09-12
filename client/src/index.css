@@ -1598,3 +1598,118 @@ kbd.gh-kbd {
 
 
 
+
+/* GitHub Box Header Actions & Filters */
+.gh-box-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  color: var(--color-fg-default);
+}
+
+.filter-tag {
+  font-weight: 400;
+  color: var(--color-accent-fg);
+  font-size: 12px;
+}
+
+.gh-box-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.header-filter-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.header-filter-icon {
+  position: absolute;
+  left: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-fg-muted);
+  pointer-events: none;
+}
+
+.header-filter-select {
+  height: 28px;
+  padding: 0.2rem 1.6rem 0.2rem 1.65rem;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--color-fg-muted);
+  background-color: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23848d97' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 10px;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+  max-width: 185px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.header-filter-select:hover {
+  color: var(--color-fg-default);
+  border-color: #8b949e;
+  background-color: var(--color-canvas-subtle);
+}
+
+.header-filter-select:focus {
+  color: var(--color-fg-default);
+  border-color: var(--color-accent-emphasis);
+  box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.3);
+}
+
+.gh-state-btn.active.unresolved-filter {
+  color: var(--color-attention-fg);
+}
+
+.state-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0 6px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-neutral-muted);
+  color: var(--color-fg-muted);
+}
+
+.gh-state-btn.active.unresolved-filter .state-badge {
+  background-color: var(--color-attention-muted);
+  color: var(--color-attention-fg);
+  border: 1px solid var(--color-attention-border);
+}
+
+@media (max-width: 768px) {
+
+  .gh-box-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .header-filter-box {
+    flex: 1;
+  }
+
+  .header-filter-select {
+    max-width: 100%;
+    width: 100%;
+  }
+
+}

@@ -225,7 +225,7 @@ export default function PRCard({
           </div>
         )}
 
-        {/* Unresolved Comments Badge (Only shown if PR has unresolved threads or threads that were resolved) */}
+        {/* Unresolved Comments Badge */}
         {isRaisedTab && !isMerged && (
           <>
             {hasUnresolvedComments ? (

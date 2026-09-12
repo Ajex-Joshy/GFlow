@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Search, GitPullRequest, GitMerge, Building2, Bot, Command } from 'lucide-react';
+import { Search, GitPullRequest, GitMerge, Building2, Bot, Command, ArrowUpDown, GitFork, MessageSquare, Check } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
@@ -23,6 +23,9 @@ export default function App() {
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const cardRefs = useRef([]);
   const searchInputRef = useRef(null);
+  const [selectedRepo, setSelectedRepo] = useState('all');
+  const [sortOrder, setSortOrder] = useState('recently-updated');
+  const [onlyUnresolved, setOnlyUnresolved] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [oauthConfigured, setOauthConfigured] = useState(false);
@@ -245,31 +248,135 @@ export default function App() {
     };
   }, [prData, selectedOrg, settings.ignoreBots, settings.excludedRepos, user?.login]);
 
-  // Filter active list by search query
+  // Available repositories filtered by active organization
+  const filteredAvailableRepos = useMemo(() => {
+    if (selectedOrg === 'all') return availableRepos;
+    if (selectedOrg === 'personal') {
+      return availableRepos.filter(
+        (repo) => repo.split('/')[0]?.toLowerCase() === user?.login?.toLowerCase()
+      );
+    }
+    return availableRepos.filter(
+      (repo) => repo.split('/')[0]?.toLowerCase() === selectedOrg?.toLowerCase()
+    );
+  }, [availableRepos, selectedOrg, user?.login]);
+
+  // Tab-adaptive sort options
+  const currentSortOptions = useMemo(() => {
+    if (activeTab === 'reviewer') {
+      return [
+        { value: 'recently-updated', label: 'Recently updated' },
+        { value: 'longest-waiting', label: 'Longest waiting for review' },
+        { value: 'newest', label: 'Newest created' },
+        { value: 'oldest', label: 'Oldest created' },
+        { value: 'smallest-diff', label: 'Smallest diff first' },
+        { value: 'most-comments', label: 'Most comments' },
+      ];
+    }
+    if (activeTab === 'raised') {
+      return [
+        { value: 'recently-updated', label: 'Recently updated' },
+        { value: 'most-unresolved', label: 'Most unresolved comments' },
+        { value: 'newest', label: 'Newest created' },
+        { value: 'oldest', label: 'Oldest created' },
+        { value: 'most-comments', label: 'Most comments' },
+      ];
+    }
+    return [
+      { value: 'recently-updated', label: 'Recently updated' },
+      { value: 'newest', label: 'Newest created' },
+      { value: 'oldest', label: 'Oldest created' },
+      { value: 'most-comments', label: 'Most comments' },
+    ];
+  }, [activeTab]);
+
+  // Reset selectedRepo if not present in the newly selected organization
+  useEffect(() => {
+    if (selectedRepo !== 'all' && !filteredAvailableRepos.includes(selectedRepo)) {
+      setSelectedRepo('all');
+    }
+  }, [selectedOrg, filteredAvailableRepos, selectedRepo]);
+
+  // Tab change adjustments for sort and filters
+  useEffect(() => {
+    setOnlyUnresolved(false);
+    const isSortAvailable = currentSortOptions.some((opt) => opt.value === sortOrder);
+    if (!isSortAvailable) {
+      setSortOrder('recently-updated');
+    }
+  }, [activeTab, currentSortOptions, sortOrder]);
+
+  // Filter and sort active list
   const currentPRs = useMemo(() => {
     let list = [];
     if (activeTab === 'raised') {
       list = raisedStateFilter === 'merged' ? filteredData.raisedMerged : filteredData.raised;
+      if (raisedStateFilter === 'open' && onlyUnresolved) {
+        list = list.filter((pr) => (pr.unresolvedCommentsCount || 0) > 0);
+      }
     } else {
       list = filteredData[activeTab] || [];
     }
 
-    if (!searchQuery.trim()) return list;
+    // Repository filter
+    if (selectedRepo !== 'all') {
+      list = list.filter((pr) => pr.repository?.nameWithOwner?.toLowerCase() === selectedRepo.toLowerCase());
+    }
 
-    const q = searchQuery.toLowerCase().trim();
-    return list.filter((pr) => {
-      const matchTitle = pr.title?.toLowerCase().includes(q);
-      const matchRepo = pr.repository?.nameWithOwner?.toLowerCase().includes(q);
-      const matchAuthor = pr.author?.login?.toLowerCase().includes(q);
-      const matchNumber = pr.number?.toString().includes(q);
-      return matchTitle || matchRepo || matchAuthor || matchNumber;
-    });
-  }, [filteredData, activeTab, raisedStateFilter, searchQuery]);
+    // Search query filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter((pr) => {
+        const matchTitle = pr.title?.toLowerCase().includes(q);
+        const matchRepo = pr.repository?.nameWithOwner?.toLowerCase().includes(q);
+        const matchAuthor = pr.author?.login?.toLowerCase().includes(q);
+        const matchNumber = pr.number?.toString().includes(q);
+        return matchTitle || matchRepo || matchAuthor || matchNumber;
+      });
+    }
+
+    // Sorting algorithms
+    const sorted = [...list];
+    switch (sortOrder) {
+      case 'longest-waiting':
+        sorted.sort((a, b) => {
+          const timeA = new Date(a.reviewRequestedAt || a.createdAt).getTime();
+          const timeB = new Date(b.reviewRequestedAt || b.createdAt).getTime();
+          return timeA - timeB; // Oldest review wait first
+        });
+        break;
+      case 'most-unresolved':
+        sorted.sort((a, b) => (b.unresolvedCommentsCount || 0) - (a.unresolvedCommentsCount || 0));
+        break;
+      case 'newest':
+        sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case 'oldest':
+        sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        break;
+      case 'smallest-diff':
+        sorted.sort((a, b) => ((a.additions || 0) + (a.deletions || 0)) - ((b.additions || 0) + (b.deletions || 0)));
+        break;
+      case 'most-comments':
+        sorted.sort((a, b) => (b.totalCommentsCount || 0) - (a.totalCommentsCount || 0));
+        break;
+      case 'recently-updated':
+      default:
+        sorted.sort((a, b) => {
+          const timeA = new Date(a.updatedAt || a.createdAt).getTime();
+          const timeB = new Date(b.updatedAt || b.createdAt).getTime();
+          return timeB - timeA; // Most recently updated first
+        });
+        break;
+    }
+
+    return sorted;
+  }, [filteredData, activeTab, raisedStateFilter, onlyUnresolved, selectedRepo, searchQuery, sortOrder]);
 
   // Reset keyboard focus when view or search changes
   useEffect(() => {
     setFocusedIndex(-1);
-  }, [activeTab, selectedOrg, raisedStateFilter, searchQuery]);
+  }, [activeTab, selectedOrg, raisedStateFilter, searchQuery, selectedRepo, sortOrder, onlyUnresolved]);
 
   // Global Keyboard Navigation & Hotkeys
   useEffect(() => {
@@ -510,39 +617,68 @@ export default function App() {
         <div className="gh-box">
           <div className="gh-box-header">
             {activeTab === 'raised' ? (
-              /* GitHub-Style Open / Merged State Switcher with dynamic org-specific counts */
+              /* GitHub-Style Open / Merged / Unresolved State Switcher */
               <div className="gh-state-filters">
                 <button
                   type="button"
-                  className={`gh-state-btn ${raisedStateFilter === 'open' ? 'active open-filter' : ''}`}
-                  onClick={() => setRaisedStateFilter('open')}
+                  className={`gh-state-btn ${raisedStateFilter === 'open' && !onlyUnresolved ? 'active open-filter' : ''}`}
+                  onClick={() => {
+                    setRaisedStateFilter('open');
+                    setOnlyUnresolved(false);
+                  }}
                 >
-                  <GitPullRequest size={14} style={{ color: raisedStateFilter === 'open' ? 'var(--color-open-fg)' : 'inherit' }} />
+                  <GitPullRequest size={14} style={{ color: raisedStateFilter === 'open' && !onlyUnresolved ? 'var(--color-open-fg)' : 'inherit' }} />
                   <span>{filteredData.counts.raised} Open</span>
                 </button>
 
                 <button
                   type="button"
                   className={`gh-state-btn ${raisedStateFilter === 'merged' ? 'active merged-filter' : ''}`}
-                  onClick={() => setRaisedStateFilter('merged')}
+                  onClick={() => {
+                    setRaisedStateFilter('merged');
+                    setOnlyUnresolved(false);
+                  }}
                 >
                   <GitMerge size={14} style={{ color: raisedStateFilter === 'merged' ? 'var(--color-merged-fg)' : 'inherit' }} />
                   <span>{filteredData.counts.raisedMerged} Merged</span>
                 </button>
+
+                {filteredData.counts.totalUnresolvedRaisedComments > 0 && (
+                  <button
+                    type="button"
+                    className={`gh-state-btn ${onlyUnresolved ? 'active unresolved-filter' : ''}`}
+                    onClick={() => {
+                      setRaisedStateFilter('open');
+                      setOnlyUnresolved(!onlyUnresolved);
+                    }}
+                    title="Toggle PRs with unresolved comments"
+                  >
+                    <MessageSquare size={13} style={{ color: onlyUnresolved ? 'var(--color-attention-fg)' : 'inherit' }} />
+                    <span>Unresolved</span>
+                    <span className="state-badge">{filteredData.counts.totalUnresolvedRaisedComments}</span>
+                  </button>
+                )}
+              </div>
+            ) : activeTab === 'reviewer' ? (
+              <div className="gh-box-header-title">
+                <GitPullRequest size={14} style={{ color: 'var(--color-open-fg)' }} />
+                <span>{currentPRs.length} {currentPRs.length === 1 ? 'Review needed' : 'Reviews needed'}</span>
+                {selectedRepo !== 'all' && (
+                  <span className="filter-tag">• {selectedRepo.includes('/') ? selectedRepo.split('/')[1] : selectedRepo}</span>
+                )}
               </div>
             ) : (
               <div className="gh-box-header-title">
-                {currentPRs.length} {currentPRs.length === 1 ? 'Pull Request' : 'Pull Requests'}
-                {selectedOrg !== 'all' && (
-                  <span style={{ color: 'var(--color-accent-fg)', fontWeight: 400, marginLeft: '0.5rem' }}>
-                    • {selectedOrg === 'personal' ? 'Personal' : selectedOrg}
-                  </span>
+                <Check size={14} style={{ color: 'var(--color-open-fg)' }} />
+                <span>{currentPRs.length} Approved</span>
+                {selectedRepo !== 'all' && (
+                  <span className="filter-tag">• {selectedRepo.includes('/') ? selectedRepo.split('/')[1] : selectedRepo}</span>
                 )}
               </div>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              {/* Bot filter indicator if bots are hidden */}
+            {/* Header Right Actions: Bot pill, Repo select, Sort select */}
+            <div className="gh-box-header-actions">
               {settings.ignoreBots && (
                 <span
                   style={{
@@ -559,11 +695,40 @@ export default function App() {
                 </span>
               )}
 
-              {activeTab === 'raised' && raisedStateFilter === 'open' && filteredData.counts.totalUnresolvedRaisedComments > 0 && (
-                <span style={{ color: 'var(--color-attention-fg)', fontSize: '12px', fontWeight: 500 }}>
-                  {filteredData.counts.totalUnresolvedRaisedComments} unresolved comments across open PRs
-                </span>
-              )}
+              {/* Repository Filter Dropdown */}
+              <div className="header-filter-box">
+                <GitFork size={13} className="header-filter-icon" />
+                <select
+                  className="header-filter-select"
+                  value={selectedRepo}
+                  onChange={(e) => setSelectedRepo(e.target.value)}
+                  title="Filter by Repository"
+                >
+                  <option value="all">Repository: All</option>
+                  {filteredAvailableRepos.map((repo) => (
+                    <option key={repo} value={repo}>
+                      {repo.includes('/') ? repo.split('/')[1] : repo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="header-filter-box">
+                <ArrowUpDown size={13} className="header-filter-icon" />
+                <select
+                  className="header-filter-select"
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  title="Sort Pull Requests"
+                >
+                  {currentSortOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      Sort: {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -581,6 +746,8 @@ export default function App() {
               tabType={activeTab}
               searchQuery={searchQuery}
               selectedOrg={selectedOrg}
+              selectedRepo={selectedRepo}
+              onlyUnresolved={onlyUnresolved}
             />
           ) : (
             <div>

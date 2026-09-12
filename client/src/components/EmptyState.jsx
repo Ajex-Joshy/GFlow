@@ -1,7 +1,7 @@
 import React from 'react';
-import { GitPullRequest, Check, Building2 } from 'lucide-react';
+import { GitPullRequest, Check, Building2, MessageSquare } from 'lucide-react';
 
-export default function EmptyState({ tabType, searchQuery, selectedOrg }) {
+export default function EmptyState({ tabType, searchQuery, selectedOrg, selectedRepo, onlyUnresolved }) {
   if (searchQuery) {
     return (
       <div className="gh-blankslate">
@@ -11,6 +11,35 @@ export default function EmptyState({ tabType, searchQuery, selectedOrg }) {
         <h3 className="gh-blankslate-heading">No results matched your search</h3>
         <p className="gh-blankslate-text">
           Could not find any pull requests matching &quot;{searchQuery}&quot;. Try searching for another repository or title.
+        </p>
+      </div>
+    );
+  }
+
+  if (onlyUnresolved) {
+    return (
+      <div className="gh-blankslate">
+        <div className="gh-blankslate-icon">
+          <Check size={32} style={{ color: 'var(--color-open-fg)' }} />
+        </div>
+        <h3 className="gh-blankslate-heading">No unresolved comments</h3>
+        <p className="gh-blankslate-text">
+          All review comments have been resolved across your open pull requests.
+        </p>
+      </div>
+    );
+  }
+
+  if (selectedRepo && selectedRepo !== 'all') {
+    const repoShort = selectedRepo.includes('/') ? selectedRepo.split('/')[1] : selectedRepo;
+    return (
+      <div className="gh-blankslate">
+        <div className="gh-blankslate-icon">
+          <GitPullRequest size={32} />
+        </div>
+        <h3 className="gh-blankslate-heading">No pull requests for {repoShort}</h3>
+        <p className="gh-blankslate-text">
+          There are no pull requests in this tab matching the repository &quot;{repoShort}&quot;.
         </p>
       </div>
     );
