@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: Build & Verify (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install server dependencies
+        run: npm install --prefix server
+
+      - name: Install client dependencies
+        run: npm install --prefix client
+
+      - name: Verify server syntax
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const { execSync } = require('child_process');
+
+            function checkDir(dir) {
+              const entries = fs.readdirSync(dir, { withFileTypes: true });
+              for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                  checkDir(fullPath);
+                } else if (entry.name.endsWith('.js')) {
+                  execSync(\`node --check "\${fullPath}"\`, { stdio: 'inherit' });
+                }
+              }
+            }
+
+            checkDir('server/src');
+            console.log('✓ All server JavaScript files passed syntax verification.');
+          "
+
+      - name: Build client production bundle
+        run: npm run build --prefix client
+
+      - name: Verify Docker build
+        if: matrix.node-version == '20.x'
+        run: docker build -t gflow:ci .

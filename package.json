@@ -6,7 +6,9 @@
     "server": "npm run dev --prefix server",
     "client": "npm run dev --prefix client",
     "build:client": "npm run build --prefix client",
-    "start": "node server/src/server.js"
+    "start": "node server/src/server.js",
+    "test:server": "node --check server/src/server.js",
+    "test": "npm run test:server && npm run build:client"
   },
   "keywords": [
     "github",
