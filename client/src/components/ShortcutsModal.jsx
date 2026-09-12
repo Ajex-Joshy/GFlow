@@ -16,8 +16,8 @@ export default function ShortcutsModal({ isOpen, onClose }) {
     {
       category: 'View & Tabs',
       items: [
-        { desc: 'Switch to "Reviewer" tab', keys: ['1'] },
-        { desc: 'Switch to "Raised" tab', keys: ['2'] },
+        { desc: 'Switch to "Review Requests" tab', keys: ['1'] },
+        { desc: 'Switch to "Created" tab', keys: ['2'] },
         { desc: 'Switch to "Approved" tab', keys: ['3'] },
       ],
     },

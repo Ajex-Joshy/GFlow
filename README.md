@@ -32,9 +32,9 @@ GitHub's default `/pulls` page treats all pull requests equally and buries cruci
 ## ✨ Features
 
 ### 1. 🗂️ 3 Core Triage Queues
-* **PR where I am reviewer:** Direct review requests and team-requested reviews across all personal and organization repos.
-* **PR I raised:** PRs authored by you, with actionable unresolved comment counters (`💬 3 unresolved`).
-* **PR I approve:** Recent PRs you reviewed and approved.
+* **Review Requests:** Direct review requests and team-requested reviews across all personal and organization repos.
+* **Created:** PRs authored by you, with actionable unresolved comment counters (`💬 3 unresolved`).
+* **Approved:** Recent PRs you reviewed and approved.
 
 ### 2. ⏱️ Review SLA Wait Timers & Status Chips
 * **SLA Timers:** Minimalist stopwatch chips (`[ ⏱ 4h 35m ]` / `[ ⏱ 1d 4h ]`) displaying elapsed wait times since review was requested.
@@ -64,9 +64,9 @@ Navigate and triage your review queue without touching your mouse:
 | <kbd>k</kbd> / <kbd>↑</kbd> | Move up to previous pull request |
 | <kbd>Enter</kbd> / <kbd>o</kbd> | Open highlighted PR in new browser tab |
 | <kbd>/</kbd> | Instantly focus search filter input |
-| <kbd>1</kbd> | Switch to **PR where I am reviewer** |
-| <kbd>2</kbd> | Switch to **PR I raised** |
-| <kbd>3</kbd> | Switch to **PR I approve** |
+| <kbd>1</kbd> | Switch to **Review Requests** |
+| <kbd>2</kbd> | Switch to **Created** |
+| <kbd>3</kbd> | Switch to **Approved** |
 | <kbd>r</kbd> | Refresh pull requests from GitHub |
 | <kbd>?</kbd> | Open keyboard shortcuts modal |
 | <kbd>Esc</kbd> | Close modals or blur search bar |

@@ -241,7 +241,7 @@ export default function SettingsModal({
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h3 className="settings-heading">Show &quot;PR I approve&quot; Tab</h3>
+                    <h3 className="settings-heading">Show &quot;Approved&quot; Tab</h3>
                     <label className="gh-toggle-label">
                       <input
                         type="checkbox"
@@ -320,13 +320,13 @@ export default function SettingsModal({
                     </label>
                   </div>
                   <p className="settings-desc">
-                    In the &quot;PR where I am reviewer&quot; tab, show the elapsed wait time since review was requested (e.g. <code>4h 35m</code> or <code>1d 4h</code>).
+                    In the &quot;Review Requests&quot; tab, show the elapsed wait time since review was requested (e.g. <code>4h 35m</code> or <code>1d 4h</code>).
                   </p>
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h3 className="settings-heading">Reviewer Decisions on Raised PRs</h3>
+                    <h3 className="settings-heading">Reviewer Decisions on Created PRs</h3>
                     <label className="gh-toggle-label">
                       <input
                         type="checkbox"
@@ -337,7 +337,7 @@ export default function SettingsModal({
                     </label>
                   </div>
                   <p className="settings-desc">
-                    Show each requested reviewer&apos;s decision (approved, changes requested, or awaiting review) on pull requests you have raised.
+                    Show each requested reviewer&apos;s decision (approved, changes requested, or awaiting review) on pull requests you have created.
                   </p>
                 </div>
 

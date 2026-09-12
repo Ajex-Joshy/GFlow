@@ -5,20 +5,20 @@ export default function Tabs({ activeTab, onTabChange, counts = {}, showApproved
   const allTabs = [
     {
       id: 'reviewer',
-      label: 'PR where I am reviewer',
+      label: 'Review Requests',
       icon: Eye,
       count: counts.reviewer || 0,
     },
     {
       id: 'raised',
-      label: 'PR I raised',
+      label: 'Created',
       icon: GitPullRequest,
       count: counts.raised || 0,
       unresolvedCount: counts.totalUnresolvedRaisedComments || 0,
     },
     {
       id: 'approved',
-      label: 'PR I approve',
+      label: 'Approved',
       icon: CheckCircle2,
       count: counts.approved || 0,
     },
