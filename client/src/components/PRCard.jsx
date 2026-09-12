@@ -160,6 +160,27 @@ export default function PRCard({
               </span>
             </>
           )}
+
+          {/* Unresolved / Resolved status on left side (clean native text, no pill) */}
+          {isRaisedTab && !isMerged && (
+            <>
+              <span>•</span>
+              {hasUnresolvedComments ? (
+                <span
+                  className="unresolved-text"
+                  title={`${pr.unresolvedCommentsCount} unresolved review thread${pr.unresolvedCommentsCount > 1 ? 's' : ''}`}
+                >
+                  <MessageSquare size={12} />
+                  <span>{pr.unresolvedCommentsCount} unresolved</span>
+                </span>
+              ) : (
+                <span className="resolved-text" title="All review threads resolved">
+                  <Check size={12} strokeWidth={2.5} />
+                  <span>Resolved</span>
+                </span>
+              )}
+            </>
+          )}
         </div>
 
         {/* Reviewers Decision Progress Line (Raised PRs) */}
@@ -211,26 +232,6 @@ export default function PRCard({
           >
             <Clock size={12} className="sla-timer-icon" />
             <span className="sla-timer-time">{reviewWaitTimerFormatted}</span>
-          </div>
-        )}
-
-        {/* Unresolved Comments Badge (Specifically for open PRs I raised) */}
-        {isRaisedTab && !isMerged && (
-          <div>
-            {hasUnresolvedComments ? (
-              <span
-                className="unresolved-badge"
-                title={`${pr.unresolvedCommentsCount} unresolved review thread${pr.unresolvedCommentsCount > 1 ? 's' : ''}`}
-              >
-                <MessageSquare size={12} />
-                <span>{pr.unresolvedCommentsCount} unresolved</span>
-              </span>
-            ) : (
-              <span className="resolved-badge" title="All review threads resolved">
-                <Check size={12} />
-                <span>Resolved</span>
-              </span>
-            )}
           </div>
         )}
 
