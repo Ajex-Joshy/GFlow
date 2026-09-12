@@ -594,11 +594,6 @@ input {
   border-color: var(--color-draft-border);
 }
 
-.gh-label-merged {
-  background-color: var(--color-merged-muted);
-  color: var(--color-merged-fg);
-  border-color: rgba(163, 113, 247, 0.3);
-}
 
 .gh-custom-label {
   display: inline-flex;

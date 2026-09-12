@@ -79,11 +79,9 @@ export default function PRCard({
           </a>
           <span className="pr-number-label">#{pr.number}</span>
 
-          {isMerged ? (
-            <span className="gh-label gh-label-merged">Merged</span>
-          ) : pr.isDraft ? (
+          {pr.isDraft && (
             <span className="gh-label gh-label-draft">Draft</span>
-          ) : null}
+          )}
 
           {/* GitHub Labels */}
           {showLabels && pr.labels?.map((label) => {
