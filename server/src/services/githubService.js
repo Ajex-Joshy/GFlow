@@ -13,7 +13,7 @@ const createClient = (token) => {
 };
 
 /**
- * Get authenticated user profile
+ * Get authenticated user profile along with member organizations
  */
 export const getUserProfile = async (token) => {
   const client = createClient(token);
@@ -25,6 +25,15 @@ export const getUserProfile = async (token) => {
         avatarUrl
         url
         bio
+        organizations(first: 50) {
+          nodes {
+            id
+            login
+            name
+            avatarUrl
+            url
+          }
+        }
       }
     }
   `);
@@ -35,7 +44,6 @@ export const getUserProfile = async (token) => {
  * Transform a GraphQL PR node into a clean, unified structure
  */
 const formatPRNode = (pr, extra = {}) => {
-  // Calculate unresolved review threads if reviewThreads field exists
   let unresolvedCommentsCount = 0;
   let totalCommentsThreads = 0;
 
@@ -45,6 +53,8 @@ const formatPRNode = (pr, extra = {}) => {
       (thread) => !thread.isResolved
     ).length;
   }
+
+  const ownerLogin = pr.repository?.owner?.login || '';
 
   return {
     id: pr.id,
@@ -62,7 +72,8 @@ const formatPRNode = (pr, extra = {}) => {
       nameWithOwner: pr.repository?.nameWithOwner || '',
       url: pr.repository?.url || '',
       isPrivate: pr.repository?.isPrivate || false,
-      owner: pr.repository?.owner?.login || '',
+      owner: ownerLogin,
+      ownerAvatarUrl: pr.repository?.owner?.avatarUrl || null,
     },
     author: {
       login: pr.author?.login || 'ghost',
@@ -93,11 +104,70 @@ const formatPRNode = (pr, extra = {}) => {
 };
 
 /**
- * 1. PRs where user is a Reviewer (review-requested or assigned reviewer)
+ * Common GraphQL fragment for PR fields
+ */
+const PR_FIELDS = `
+  id
+  number
+  title
+  url
+  createdAt
+  updatedAt
+  state
+  isDraft
+  reviewDecision
+  additions
+  deletions
+  changedFiles
+  repository {
+    name
+    nameWithOwner
+    url
+    isPrivate
+    owner {
+      login
+      avatarUrl
+    }
+  }
+  author {
+    login
+    avatarUrl
+    url
+  }
+  labels(first: 5) {
+    nodes { name color }
+  }
+  comments {
+    totalCount
+  }
+  reviewThreads(first: 100) {
+    totalCount
+    nodes {
+      id
+      isResolved
+      isOutdated
+      comments(first: 1) {
+        totalCount
+      }
+    }
+  }
+  reviewRequests(first: 10) {
+    nodes {
+      requestedReviewer {
+        ... on User { login avatarUrl }
+        ... on Team { name }
+      }
+    }
+  }
+`;
+
+/**
+ * 1. PRs where user is a Reviewer (individual or team review requested in any org or personal repo)
  */
 export const getReviewerPRs = async (token, username) => {
   const client = createClient(token);
-  const query = `is:open is:pr review-requested:${username} archived:false`;
+  // review-requested:@me matches direct user review requests AND team review requests in organizations
+  const query = `is:open is:pr review-requested:@me archived:false`;
 
   const data = await client(`
     query ($query: String!) {
@@ -105,44 +175,7 @@ export const getReviewerPRs = async (token, username) => {
         issueCount
         nodes {
           ... on PullRequest {
-            id
-            number
-            title
-            url
-            createdAt
-            updatedAt
-            state
-            isDraft
-            reviewDecision
-            additions
-            deletions
-            changedFiles
-            repository {
-              name
-              nameWithOwner
-              url
-              isPrivate
-              owner { login }
-            }
-            author {
-              login
-              avatarUrl
-              url
-            }
-            labels(first: 5) {
-              nodes { name color }
-            }
-            comments {
-              totalCount
-            }
-            reviewRequests(first: 10) {
-              nodes {
-                requestedReviewer {
-                  ... on User { login avatarUrl }
-                  ... on Team { name }
-                }
-              }
-            }
+            ${PR_FIELDS}
           }
         }
       }
@@ -153,11 +186,11 @@ export const getReviewerPRs = async (token, username) => {
 };
 
 /**
- * 2. PRs raised by the user (with unresolved comments thread calculations)
+ * 2. PRs raised by the user (across personal & organization repositories)
  */
 export const getRaisedPRs = async (token, username) => {
   const client = createClient(token);
-  const query = `is:open is:pr author:${username} archived:false`;
+  const query = `is:open is:pr author:@me archived:false`;
 
   const data = await client(`
     query ($query: String!) {
@@ -165,47 +198,7 @@ export const getRaisedPRs = async (token, username) => {
         issueCount
         nodes {
           ... on PullRequest {
-            id
-            number
-            title
-            url
-            createdAt
-            updatedAt
-            state
-            isDraft
-            reviewDecision
-            additions
-            deletions
-            changedFiles
-            repository {
-              name
-              nameWithOwner
-              url
-              isPrivate
-              owner { login }
-            }
-            author {
-              login
-              avatarUrl
-              url
-            }
-            labels(first: 5) {
-              nodes { name color }
-            }
-            comments {
-              totalCount
-            }
-            reviewThreads(first: 100) {
-              totalCount
-              nodes {
-                id
-                isResolved
-                isOutdated
-                comments(first: 1) {
-                  totalCount
-                }
-              }
-            }
+            ${PR_FIELDS}
           }
         }
       }
@@ -216,12 +209,11 @@ export const getRaisedPRs = async (token, username) => {
 };
 
 /**
- * 3. PRs approved by user
+ * 3. PRs approved by user (across personal & organization repositories)
  */
 export const getApprovedPRs = async (token, username) => {
   const client = createClient(token);
-  // Returns PRs where user approved
-  const query = `is:pr reviewed-by:${username} review:approved archived:false`;
+  const query = `is:pr reviewed-by:@me review:approved archived:false`;
 
   const data = await client(`
     query ($query: String!) {
@@ -229,36 +221,7 @@ export const getApprovedPRs = async (token, username) => {
         issueCount
         nodes {
           ... on PullRequest {
-            id
-            number
-            title
-            url
-            createdAt
-            updatedAt
-            state
-            isDraft
-            reviewDecision
-            additions
-            deletions
-            changedFiles
-            repository {
-              name
-              nameWithOwner
-              url
-              isPrivate
-              owner { login }
-            }
-            author {
-              login
-              avatarUrl
-              url
-            }
-            labels(first: 5) {
-              nodes { name color }
-            }
-            comments {
-              totalCount
-            }
+            ${PR_FIELDS}
             reviews(author: "${username}", states: [APPROVED], last: 1) {
               nodes {
                 submittedAt
@@ -275,6 +238,40 @@ export const getApprovedPRs = async (token, username) => {
     const lastApproval = node.reviews?.nodes?.[0]?.submittedAt || null;
     return formatPRNode(node, { approvedAt: lastApproval });
   });
+};
+
+/**
+ * 4. Open PRs in organizations where user is a member
+ */
+export const getOrganizationPRs = async (token, organizations = []) => {
+  if (!organizations || organizations.length === 0) {
+    return [];
+  }
+
+  const client = createClient(token);
+  // Build query: org:org1 org:org2 ...
+  const orgFilters = organizations.map((org) => `org:${org.login}`).join(' ');
+  const query = `is:open is:pr ${orgFilters} archived:false`;
+
+  try {
+    const data = await client(`
+      query ($query: String!) {
+        search(query: $query, type: ISSUE, first: 50) {
+          issueCount
+          nodes {
+            ... on PullRequest {
+              ${PR_FIELDS}
+            }
+          }
+        }
+      }
+    `, { query });
+
+    return (data.search?.nodes || []).map((node) => formatPRNode(node));
+  } catch (err) {
+    console.error('Error fetching organization PRs:', err.message);
+    return [];
+  }
 };
 
 /**

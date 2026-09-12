@@ -4,13 +4,16 @@ import {
   GitPullRequestDraft,
   MessageSquare,
   Check,
+  Building2,
 } from 'lucide-react';
 import { formatPRTimestamp } from '../utils/dateFormatter';
 
-export default function PRCard({ pr, tabType }) {
+export default function PRCard({ pr, tabType, userLogin }) {
   const isRaisedTab = tabType === 'raised';
+  const isOrgTab = tabType === 'org';
   const hasUnresolvedComments = (pr.unresolvedCommentsCount || 0) > 0;
   const createdFormatted = formatPRTimestamp(pr.createdAt);
+  const isOrgRepo = pr.repository?.owner && pr.repository?.owner !== userLogin;
 
   return (
     <div className="pr-row">
@@ -38,6 +41,24 @@ export default function PRCard({ pr, tabType }) {
 
           {pr.isDraft && (
             <span className="gh-label gh-label-draft">Draft</span>
+          )}
+
+          {isOrgRepo && (
+            <span
+              className="gh-label"
+              style={{
+                backgroundColor: 'rgba(56, 139, 253, 0.12)',
+                color: '#58a6ff',
+                borderColor: 'rgba(56, 139, 253, 0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}
+              title={`Organization: ${pr.repository?.owner}`}
+            >
+              <Building2 size={11} />
+              {pr.repository?.owner}
+            </span>
           )}
         </div>
 
@@ -77,8 +98,8 @@ export default function PRCard({ pr, tabType }) {
 
       {/* Right Side: Unresolved Comments & Diff stats */}
       <div className="pr-row-right">
-        {/* Unresolved Comments Badge (Specifically for PR I raised) */}
-        {isRaisedTab && (
+        {/* Unresolved Comments Badge (for raised PRs, and optionally org PRs) */}
+        {(isRaisedTab || isOrgTab) && (
           <div>
             {hasUnresolvedComments ? (
               <span
@@ -97,8 +118,8 @@ export default function PRCard({ pr, tabType }) {
           </div>
         )}
 
-        {/* Total Comments if any */}
-        {!isRaisedTab && pr.totalCommentsCount > 0 && (
+        {/* Total Comments if not showing unresolved */}
+        {!isRaisedTab && !isOrgTab && pr.totalCommentsCount > 0 && (
           <span
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-fg-muted)', fontSize: '12px' }}
             title={`${pr.totalCommentsCount} comments`}

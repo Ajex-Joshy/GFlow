@@ -1,7 +1,7 @@
 import React from 'react';
-import { GitPullRequest, Check } from 'lucide-react';
+import { GitPullRequest, Check, Building2 } from 'lucide-react';
 
-export default function EmptyState({ tabType, searchQuery }) {
+export default function EmptyState({ tabType, searchQuery, selectedOrg }) {
   if (searchQuery) {
     return (
       <div className="gh-blankslate">
@@ -16,18 +16,36 @@ export default function EmptyState({ tabType, searchQuery }) {
     );
   }
 
+  if (selectedOrg && selectedOrg !== 'all') {
+    return (
+      <div className="gh-blankslate">
+        <div className="gh-blankslate-icon">
+          <Building2 size={32} />
+        </div>
+        <h3 className="gh-blankslate-heading">No pull requests found for {selectedOrg}</h3>
+        <p className="gh-blankslate-text">
+          There are no pull requests in this tab matching the selected organization filter.
+        </p>
+      </div>
+    );
+  }
+
   const tabMessages = {
     reviewer: {
       title: 'There aren’t any pull requests waiting on your review.',
-      desc: 'When someone requests your review on a pull request, it will appear here.',
+      desc: 'When someone requests your review on a pull request (individually or via an organization team), it will appear here.',
     },
     raised: {
       title: 'There aren’t any open pull requests created by you.',
-      desc: 'Pull requests you open across any repository will be tracked here.',
+      desc: 'Pull requests you open across your personal and organization repositories will be tracked here.',
     },
     approved: {
       title: 'There aren’t any pull requests you have approved.',
       desc: 'Pull requests that you have reviewed and approved will show up here.',
+    },
+    org: {
+      title: 'No open pull requests found across your organizations.',
+      desc: 'Pull requests opened by your teammates across your organizations will show up here.',
     },
   };
 

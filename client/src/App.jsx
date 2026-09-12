@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, GitPullRequest } from 'lucide-react';
+import { Search, GitPullRequest, Building2 } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
@@ -9,22 +9,26 @@ import LoginView from './components/LoginView';
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [organizations, setOrganizations] = useState([]);
+  const [selectedOrg, setSelectedOrg] = useState('all'); // 'all' | 'personal' | orgLogin
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [oauthConfigured, setOauthConfigured] = useState(false);
   const [authError, setAuthError] = useState('');
 
   // PR Data State
-  const [activeTab, setActiveTab] = useState('reviewer'); // 'reviewer' | 'raised' | 'approved'
+  const [activeTab, setActiveTab] = useState('reviewer'); // 'reviewer' | 'raised' | 'approved' | 'org'
   const [prData, setPrData] = useState({
     reviewer: [],
     raised: [],
     approved: [],
+    org: [],
   });
   const [counts, setCounts] = useState({
     reviewer: 0,
     raised: 0,
     approved: 0,
+    org: 0,
     totalUnresolvedRaisedComments: 0,
   });
   const [isLoadingPRs, setIsLoadingPRs] = useState(false);
@@ -62,6 +66,7 @@ export default function App() {
         const authData = await api.getCurrentUser();
         if (authData?.user) {
           setUser(authData.user);
+          setOrganizations(authData.user.organizations?.nodes || []);
           setIsAuthenticated(true);
         }
       } catch {
@@ -83,8 +88,11 @@ export default function App() {
 
     try {
       const result = await api.getPRSummary();
-      setPrData(result.data || { reviewer: [], raised: [], approved: [] });
-      setCounts(result.counts || { reviewer: 0, raised: 0, approved: 0, totalUnresolvedRaisedComments: 0 });
+      setPrData(result.data || { reviewer: [], raised: [], approved: [], org: [] });
+      setCounts(result.counts || { reviewer: 0, raised: 0, approved: 0, org: 0, totalUnresolvedRaisedComments: 0 });
+      if (result.organizations) {
+        setOrganizations(result.organizations);
+      }
     } catch (err) {
       console.error('Failed to load PRs:', err);
       if (err.status === 401) {
@@ -120,6 +128,7 @@ export default function App() {
     const res = await api.loginWithPAT(token);
     if (res.user) {
       setUser(res.user);
+      setOrganizations(res.user.organizations?.nodes || []);
       setIsAuthenticated(true);
       setAuthError('');
     }
@@ -133,26 +142,39 @@ export default function App() {
       console.error('Logout error:', e);
     } finally {
       setUser(null);
+      setOrganizations([]);
+      setSelectedOrg('all');
       setIsAuthenticated(false);
-      setPrData({ reviewer: [], raised: [], approved: [] });
-      setCounts({ reviewer: 0, raised: 0, approved: 0, totalUnresolvedRaisedComments: 0 });
+      setPrData({ reviewer: [], raised: [], approved: [], org: [] });
+      setCounts({ reviewer: 0, raised: 0, approved: 0, org: 0, totalUnresolvedRaisedComments: 0 });
     }
   };
 
-  // Filter PRs by search query
+  // Filter PRs by organization and search query
   const currentPRs = useMemo(() => {
     const list = prData[activeTab] || [];
-    if (!searchQuery.trim()) return list;
+
+    // Filter by Organization
+    const orgFiltered = list.filter((pr) => {
+      if (selectedOrg === 'all') return true;
+      const owner = pr.repository?.owner;
+      if (selectedOrg === 'personal') {
+        return owner === user?.login;
+      }
+      return owner === selectedOrg;
+    });
+
+    if (!searchQuery.trim()) return orgFiltered;
 
     const q = searchQuery.toLowerCase().trim();
-    return list.filter((pr) => {
+    return orgFiltered.filter((pr) => {
       const matchTitle = pr.title?.toLowerCase().includes(q);
       const matchRepo = pr.repository?.nameWithOwner?.toLowerCase().includes(q);
       const matchAuthor = pr.author?.login?.toLowerCase().includes(q);
       const matchNumber = pr.number?.toString().includes(q);
       return matchTitle || matchRepo || matchAuthor || matchNumber;
     });
-  }, [prData, activeTab, searchQuery]);
+  }, [prData, activeTab, selectedOrg, searchQuery, user?.login]);
 
   // If initial auth check is loading
   if (authLoading) {
@@ -198,15 +220,40 @@ export default function App() {
               <span>Pull Requests</span>
             </h1>
 
-            <div className="search-filter-box">
-              <Search size={14} className="search-icon" />
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Filter pull requests..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              {/* Organization Filter Dropdown */}
+              {organizations.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Building2 size={15} style={{ color: 'var(--color-fg-muted)' }} />
+                  <select
+                    className="gh-input"
+                    style={{ padding: '0.35rem 0.65rem', width: 'auto', cursor: 'pointer' }}
+                    value={selectedOrg}
+                    onChange={(e) => setSelectedOrg(e.target.value)}
+                    title="Filter by Organization"
+                  >
+                    <option value="all">All Organizations & Personal</option>
+                    <option value="personal">Personal (@{user?.login})</option>
+                    {organizations.map((org) => (
+                      <option key={org.id || org.login} value={org.login}>
+                        🏢 {org.name || org.login}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Search Filter */}
+              <div className="search-filter-box">
+                <Search size={14} className="search-icon" />
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Filter pull requests..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
@@ -216,7 +263,7 @@ export default function App() {
             </div>
           )}
 
-          {/* UnderlineNav 3 Tabs: Reviewer, Raised, Approved */}
+          {/* UnderlineNav Tabs: Reviewer, Raised, Approved, Organization PRs */}
           <Tabs
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -229,7 +276,13 @@ export default function App() {
           <div className="gh-box-header">
             <div className="gh-box-header-title">
               {currentPRs.length} {currentPRs.length === 1 ? 'Pull Request' : 'Pull Requests'}
+              {selectedOrg !== 'all' && (
+                <span style={{ color: 'var(--color-accent-fg)', fontWeight: 400, marginLeft: '0.5rem' }}>
+                  • {selectedOrg === 'personal' ? 'Personal' : selectedOrg}
+                </span>
+              )}
             </div>
+
             {activeTab === 'raised' && counts.totalUnresolvedRaisedComments > 0 && (
               <span style={{ color: 'var(--color-attention-fg)', fontSize: '12px', fontWeight: 500 }}>
                 {counts.totalUnresolvedRaisedComments} unresolved comments across open PRs
@@ -247,7 +300,11 @@ export default function App() {
               ))}
             </div>
           ) : currentPRs.length === 0 ? (
-            <EmptyState tabType={activeTab} searchQuery={searchQuery} />
+            <EmptyState
+              tabType={activeTab}
+              searchQuery={searchQuery}
+              selectedOrg={selectedOrg}
+            />
           ) : (
             <div>
               {currentPRs.map((pr) => (
@@ -255,6 +312,7 @@ export default function App() {
                   key={pr.id || `${pr.repository?.nameWithOwner}-${pr.number}`}
                   pr={pr}
                   tabType={activeTab}
+                  userLogin={user?.login}
                 />
               ))}
             </div>

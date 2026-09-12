@@ -99,15 +99,19 @@ export default function LoginView({ onLoginWithToken, oauthConfigured, error }) 
       </div>
 
       <div className="login-help-box">
-        <span>Need a token? </span>
-        <a
-          href="https://github.com/settings/tokens/new?scopes=repo,read:user"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Create a personal access token
-        </a>
-        <div>with <code>repo</code> and <code>read:user</code> scopes.</div>
+        <div>
+          <span>Need a token? </span>
+          <a
+            href="https://github.com/settings/tokens/new?scopes=repo,read:user,read:org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Create token with <code>repo</code>, <code>read:user</code>, <code>read:org</code>
+          </a>
+        </div>
+        <div style={{ marginTop: '0.5rem', color: 'var(--color-fg-muted)' }}>
+          🏢 If your organization uses SAML SSO, click <strong>Configure SSO &rarr; Authorize</strong> on GitHub next to the token.
+        </div>
       </div>
     </div>
   );

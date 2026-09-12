@@ -5,6 +5,7 @@ import {
   getReviewerPRs,
   getRaisedPRs,
   getApprovedPRs,
+  getOrganizationPRs,
 } from '../services/githubService.js';
 
 const router = express.Router();
@@ -14,14 +15,15 @@ router.use(requireAuth);
 
 /**
  * GET /api/prs/summary
- * Fetches PRs for all three tabs in parallel
+ * Fetches PRs for all tabs including organizations in parallel
  */
 router.get('/summary', async (req, res) => {
   try {
     const user = await getUserProfile(req.ghToken);
     const username = user.login;
+    const orgs = user.organizations?.nodes || [];
 
-    const [reviewerPRs, raisedPRs, approvedPRs] = await Promise.all([
+    const [reviewerPRs, raisedPRs, approvedPRs, orgPRs] = await Promise.all([
       getReviewerPRs(req.ghToken, username).catch((err) => {
         console.error('Error fetching reviewer PRs:', err.message);
         return [];
@@ -34,6 +36,10 @@ router.get('/summary', async (req, res) => {
         console.error('Error fetching approved PRs:', err.message);
         return [];
       }),
+      getOrganizationPRs(req.ghToken, orgs).catch((err) => {
+        console.error('Error fetching organization PRs:', err.message);
+        return [];
+      }),
     ]);
 
     // Compute total unresolved comments across all raised PRs
@@ -44,16 +50,19 @@ router.get('/summary', async (req, res) => {
 
     res.json({
       user,
+      organizations: orgs,
       counts: {
         reviewer: reviewerPRs.length,
         raised: raisedPRs.length,
         approved: approvedPRs.length,
+        org: orgPRs.length,
         totalUnresolvedRaisedComments,
       },
       data: {
         reviewer: reviewerPRs,
         raised: raisedPRs,
         approved: approvedPRs,
+        org: orgPRs,
       },
       fetchedAt: new Date().toISOString(),
     });
@@ -99,6 +108,20 @@ router.get('/approved', async (req, res) => {
   try {
     const user = await getUserProfile(req.ghToken);
     const prs = await getApprovedPRs(req.ghToken, user.login);
+    res.json({ count: prs.length, prs });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/prs/org
+ */
+router.get('/org', async (req, res) => {
+  try {
+    const user = await getUserProfile(req.ghToken);
+    const orgs = user.organizations?.nodes || [];
+    const prs = await getOrganizationPRs(req.ghToken, orgs);
     res.json({ count: prs.length, prs });
   } catch (error) {
     res.status(500).json({ error: error.message });
