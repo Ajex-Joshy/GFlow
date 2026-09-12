@@ -31,7 +31,7 @@ export default function Navbar({ user, onRefresh, isRefreshing, onLogout, onOpen
               title="Refresh Pull Requests"
             >
               <RefreshCw size={13} />
-              <span>Refresh</span>
+              <span className="nav-btn-text">Refresh</span>
             </button>
 
             <button
@@ -40,7 +40,7 @@ export default function Navbar({ user, onRefresh, isRefreshing, onLogout, onOpen
               title="Settings & Noise Filtering"
             >
               <Settings size={13} />
-              <span>Settings</span>
+              <span className="nav-btn-text">Settings</span>
             </button>
 
             <a

@@ -438,14 +438,13 @@ export default function App() {
               <span>Pull Requests</span>
             </h1>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div className="dashboard-controls">
               {/* Organization Filter Dropdown */}
               {organizations.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <div className="org-filter-wrapper">
                   <Building2 size={15} style={{ color: 'var(--color-fg-muted)' }} />
                   <select
-                    className="gh-input"
-                    style={{ padding: '0.35rem 0.65rem', width: 'auto', cursor: 'pointer' }}
+                    className="gh-input org-select"
                     value={selectedOrg}
                     onChange={(e) => setSelectedOrg(e.target.value)}
                     title="Filter by Organization"

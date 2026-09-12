@@ -347,6 +347,26 @@ input {
   border: 1px solid var(--color-attention-border);
 }
 
+/* Dashboard Controls & Org Select */
+.dashboard-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.org-filter-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.org-select {
+  padding: 0.35rem 0.65rem;
+  width: auto;
+  cursor: pointer;
+}
+
 /* Search Bar (GitHub filter style) */
 .search-filter-box {
   position: relative;
@@ -1344,5 +1364,188 @@ kbd.gh-kbd {
 .reviewer-status-icon.pending {
   color: var(--color-attention-fg);
 }
+
+/* ==========================================================================
+   Responsive Design & Mobile Optimization
+   ========================================================================== */
+
+/* Tablets and below (<= 768px) */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem 0.75rem 2.5rem;
+  }
+
+  .dashboard-title-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .dashboard-controls {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .org-filter-wrapper {
+    width: 100%;
+  }
+
+  .org-select {
+    flex: 1;
+    width: 100%;
+  }
+
+  .search-filter-box {
+    width: 100%;
+  }
+
+  /* Keyboard shortcuts are for physical desktop keyboards; hide hint button on touch/mobile */
+  .keyboard-hint-btn {
+    display: none !important;
+  }
+
+  /* UnderlineNav horizontal touch scroll */
+  .underlinenav-container {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 2px;
+  }
+  .underlinenav-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .underlinenav-item {
+    padding: 0.6rem 0.75rem;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  /* PR Card: Wrap and stack right action column under title & metadata */
+  .pr-row {
+    flex-wrap: wrap;
+    padding: 0.75rem 0.85rem;
+    gap: 0.5rem 0.6rem;
+  }
+
+  .pr-row-content {
+    flex: 1;
+    min-width: 0;
+    width: calc(100% - 28px);
+  }
+
+  .pr-title-link {
+    font-size: 14px;
+    word-break: break-word;
+  }
+
+  .pr-row-right {
+    width: 100%;
+    padding-left: 24px; /* Align neatly under PR title, skipping the PR status icon */
+    margin-top: 0.25rem;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.6rem;
+    justify-content: flex-start;
+  }
+
+  /* Diff stats and badges touch wrapping */
+  .diff-stat-combined {
+    flex-wrap: wrap;
+  }
+}
+
+/* Small Phones (<= 640px) */
+@media (max-width: 640px) {
+  .navbar {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .navbar-inner {
+    gap: 0.5rem;
+  }
+
+  .brand span {
+    font-size: 0.95rem;
+  }
+
+  /* Hide text labels on small screens so buttons become compact icon buttons */
+  .nav-btn-text {
+    display: none;
+  }
+
+  .gh-btn {
+    padding: 0.35rem 0.55rem;
+  }
+
+  .user-profile-badge {
+    padding: 0.2rem 0.4rem;
+  }
+
+  .user-profile-badge .user-name {
+    max-width: 75px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* PR list header */
+  .gh-box-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .gh-state-filters {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* Modals: bottom-sheet presentation on mobile */
+  .gh-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .gh-modal {
+    max-width: 100%;
+    max-height: 88vh;
+    border-radius: 14px 14px 0 0;
+    margin: 0;
+  }
+
+  .gh-modal-header {
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    padding: 0.85rem 1rem;
+  }
+
+  .gh-modal-body {
+    padding: 1rem;
+    gap: 1.25rem;
+  }
+
+  .gh-modal-footer {
+    padding: 0.75rem 1rem;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+/* Very Narrow Phones (<= 380px) */
+@media (max-width: 380px) {
+  .user-profile-badge .user-name {
+    display: none;
+  }
+
+  .pr-row-meta-line {
+    font-size: 11px;
+    gap: 0.35rem;
+  }
+}
+
 
 
