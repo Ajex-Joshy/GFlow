@@ -133,6 +133,53 @@ const formatPRNode = (pr, extra = {}) => {
       }
       return pr.createdAt;
     })(),
+    reviewers: (() => {
+      const latestReviewsMap = new Map();
+      (pr.latestReviews?.nodes || []).forEach((rev) => {
+        const revLogin = rev.author?.login;
+        if (revLogin) {
+          latestReviewsMap.set(revLogin.toLowerCase(), {
+            login: revLogin,
+            avatarUrl: rev.author?.avatarUrl,
+            state: rev.state, // 'APPROVED', 'CHANGES_REQUESTED', 'COMMENTED', 'DISMISSED'
+            submittedAt: rev.submittedAt,
+          });
+        }
+      });
+
+      const list = [];
+      const seen = new Set();
+
+      // 1. Pending review requests (if re-requested, state is PENDING)
+      (pr.reviewRequests?.nodes || []).forEach((req) => {
+        const reqLogin = req.requestedReviewer?.login || req.requestedReviewer?.name;
+        if (!reqLogin) return;
+        const key = reqLogin.toLowerCase();
+        seen.add(key);
+
+        list.push({
+          login: reqLogin,
+          avatarUrl: req.requestedReviewer?.avatarUrl || null,
+          state: 'PENDING',
+          isTeam: !req.requestedReviewer?.login,
+        });
+      });
+
+      // 2. Completed reviews not currently pending
+      latestReviewsMap.forEach((rev, key) => {
+        if (!seen.has(key)) {
+          seen.add(key);
+          list.push({
+            login: rev.login,
+            avatarUrl: rev.avatarUrl,
+            state: rev.state,
+            submittedAt: rev.submittedAt,
+          });
+        }
+      });
+
+      return list;
+    })(),
     ...extra,
   };
 };
@@ -211,6 +258,16 @@ const PR_FIELDS = `
           ... on Team { name }
         }
       }
+    }
+  }
+  latestReviews(first: 15) {
+    nodes {
+      author {
+        login
+        avatarUrl
+      }
+      state
+      submittedAt
     }
   }
 `;

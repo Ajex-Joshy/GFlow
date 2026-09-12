@@ -13,6 +13,7 @@ export const DEFAULT_SETTINGS = {
   showDetailedTimestamp: true,
   showCIStatus: true,
   showReviewWaitTimer: true,
+  showReviewerStatus: true,
 };
 
 /**

@@ -77,6 +77,16 @@ export default function SettingsModal({
     triggerSavedToast();
   };
 
+  const handleToggleReviewerStatus = () => {
+    const updated = {
+      ...currentSettings,
+      showReviewerStatus: currentSettings.showReviewerStatus === false ? true : false,
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+    triggerSavedToast();
+  };
+
   const handleChangeDefaultOrg = (orgValue) => {
     const updated = {
       ...currentSettings,
@@ -301,6 +311,23 @@ export default function SettingsModal({
                   </div>
                   <p className="settings-desc">
                     In the &quot;PR where I am reviewer&quot; tab, show the elapsed wait time since review was requested in <code>HH : MM</code> format (e.g. <code>04 : 32</code>).
+                  </p>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 className="settings-heading">Reviewer Decisions on Raised PRs</h3>
+                    <label className="gh-toggle-label">
+                      <input
+                        type="checkbox"
+                        checked={currentSettings.showReviewerStatus !== false}
+                        onChange={handleToggleReviewerStatus}
+                      />
+                      <span className="gh-toggle-slider" />
+                    </label>
+                  </div>
+                  <p className="settings-desc">
+                    Show each requested reviewer&apos;s decision (approved, changes requested, or awaiting review) on pull requests you have raised.
                   </p>
                 </div>
               </div>

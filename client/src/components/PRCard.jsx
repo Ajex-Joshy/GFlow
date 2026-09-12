@@ -21,6 +21,7 @@ export default function PRCard({
   showDetailedTimestamp = true,
   showCIStatus = true,
   showReviewWaitTimer = true,
+  showReviewerStatus = true,
   isSelected = false,
   cardRef = null,
 }) {
@@ -160,6 +161,44 @@ export default function PRCard({
             </>
           )}
         </div>
+
+        {/* Reviewers Decision Progress Line (Raised PRs) */}
+        {isRaisedTab && showReviewerStatus && pr.reviewers?.length > 0 && (
+          <div className="pr-reviewers-line">
+            <span className="pr-reviewers-label">Reviewers:</span>
+            <div className="pr-reviewers-chips">
+              {pr.reviewers.map((rev) => (
+                <span
+                  key={rev.login}
+                  className={`reviewer-status-chip ${rev.state.toLowerCase()}`}
+                  title={`@${rev.login}: ${
+                    rev.state === 'APPROVED'
+                      ? 'Approved'
+                      : rev.state === 'CHANGES_REQUESTED'
+                      ? 'Changes requested'
+                      : rev.state === 'COMMENTED'
+                      ? 'Commented'
+                      : 'Awaiting review'
+                  }`}
+                >
+                  {rev.avatarUrl && (
+                    <img src={rev.avatarUrl} alt={rev.login} className="reviewer-chip-avatar" />
+                  )}
+                  <span className="reviewer-chip-name">@{rev.login}</span>
+                  {rev.state === 'APPROVED' ? (
+                    <Check size={11} strokeWidth={2.8} className="reviewer-status-icon approved" />
+                  ) : rev.state === 'CHANGES_REQUESTED' ? (
+                    <X size={11} strokeWidth={2.8} className="reviewer-status-icon changes-requested" />
+                  ) : rev.state === 'COMMENTED' ? (
+                    <MessageSquare size={10} className="reviewer-status-icon commented" />
+                  ) : (
+                    <Clock size={10} className="reviewer-status-icon pending" />
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right Side: SLA Wait Timer, Unresolved Comments & Diff stats */}

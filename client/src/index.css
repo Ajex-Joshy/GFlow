@@ -1208,4 +1208,99 @@ kbd.gh-kbd {
   letter-spacing: 0.04em;
 }
 
+/* ==========================================================================
+   Reviewers Decision Line on Raised PRs
+   ========================================================================== */
+.pr-reviewers-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.pr-reviewers-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-fg-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pr-reviewers-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.reviewer-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  background-color: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-fg-muted);
+  line-height: 16px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.reviewer-status-chip:hover {
+  border-color: var(--color-border-muted);
+  background-color: var(--color-btn-hover-bg);
+}
+
+.reviewer-chip-avatar {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.reviewer-chip-name {
+  font-weight: 500;
+  color: var(--color-fg-default);
+}
+
+/* Reviewer Decision Status Highlights */
+.reviewer-status-chip.approved {
+  background-color: rgba(35, 134, 54, 0.1);
+  border-color: rgba(63, 185, 80, 0.3);
+}
+.reviewer-status-chip.approved .reviewer-chip-name {
+  color: var(--color-open-fg);
+}
+.reviewer-status-icon.approved {
+  color: var(--color-open-fg);
+}
+
+.reviewer-status-chip.changes_requested {
+  background-color: rgba(248, 81, 73, 0.1);
+  border-color: rgba(248, 81, 73, 0.3);
+}
+.reviewer-status-chip.changes_requested .reviewer-chip-name {
+  color: var(--color-danger-fg);
+}
+.reviewer-status-icon.changes-requested {
+  color: var(--color-danger-fg);
+}
+
+.reviewer-status-chip.commented {
+  border-color: var(--color-border-muted);
+}
+.reviewer-status-icon.commented {
+  color: var(--color-fg-muted);
+}
+
+.reviewer-status-chip.pending {
+  border-color: rgba(210, 153, 34, 0.25);
+}
+.reviewer-status-icon.pending {
+  color: var(--color-attention-fg);
+}
+
 
