@@ -228,6 +228,29 @@ export const getRaisedPRs = async (token, username) => {
 };
 
 /**
+ * 2b. PRs raised by the user that were merged (recent 30)
+ */
+export const getRaisedMergedPRs = async (token, username) => {
+  const client = createClient(token);
+  const queryString = `is:merged is:pr author:@me archived:false`;
+
+  const data = await client(`
+    query ($queryString: String!) {
+      search(query: $queryString, type: ISSUE, first: 30) {
+        issueCount
+        nodes {
+          ... on PullRequest {
+            ${PR_FIELDS}
+          }
+        }
+      }
+    }
+  `, { queryString });
+
+  return (data.search?.nodes || []).map((node) => formatPRNode(node));
+};
+
+/**
  * 3. PRs approved by user (across personal & organization repositories)
  */
 export const getApprovedPRs = async (token, username) => {

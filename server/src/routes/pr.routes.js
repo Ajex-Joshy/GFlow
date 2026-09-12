@@ -4,6 +4,7 @@ import {
   getUserProfile,
   getReviewerPRs,
   getRaisedPRs,
+  getRaisedMergedPRs,
   getApprovedPRs,
 } from '../services/githubService.js';
 
@@ -22,13 +23,17 @@ router.get('/summary', async (req, res) => {
     const username = user.login;
     const orgs = user.organizations?.nodes || [];
 
-    const [reviewerPRs, raisedPRs, approvedPRs] = await Promise.all([
+    const [reviewerPRs, raisedPRs, raisedMergedPRs, approvedPRs] = await Promise.all([
       getReviewerPRs(req.ghToken, username).catch((err) => {
         console.error('Error fetching reviewer PRs:', err.message);
         return [];
       }),
       getRaisedPRs(req.ghToken, username).catch((err) => {
         console.error('Error fetching raised PRs:', err.message);
+        return [];
+      }),
+      getRaisedMergedPRs(req.ghToken, username).catch((err) => {
+        console.error('Error fetching raised merged PRs:', err.message);
         return [];
       }),
       getApprovedPRs(req.ghToken, username).catch((err) => {
@@ -49,12 +54,14 @@ router.get('/summary', async (req, res) => {
       counts: {
         reviewer: reviewerPRs.length,
         raised: raisedPRs.length,
+        raisedMerged: raisedMergedPRs.length,
         approved: approvedPRs.length,
         totalUnresolvedRaisedComments,
       },
       data: {
         reviewer: reviewerPRs,
         raised: raisedPRs,
+        raisedMerged: raisedMergedPRs,
         approved: approvedPRs,
       },
       fetchedAt: new Date().toISOString(),

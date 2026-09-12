@@ -2,21 +2,25 @@ import React from 'react';
 import {
   GitPullRequest,
   GitPullRequestDraft,
+  GitMerge,
   MessageSquare,
   Check,
 } from 'lucide-react';
-import { formatPRTimestamp } from '../utils/dateFormatter';
+import { formatPRTimestamp, formatRelativeOnly } from '../utils/dateFormatter';
 
 export default function PRCard({ pr, tabType }) {
   const isRaisedTab = tabType === 'raised';
+  const isMerged = pr.state === 'MERGED' || Boolean(pr.mergedAt);
   const hasUnresolvedComments = (pr.unresolvedCommentsCount || 0) > 0;
   const createdFormatted = formatPRTimestamp(pr.createdAt);
 
   return (
     <div className="pr-row">
-      {/* GitHub PR Status Icon (Green for open, gray for draft) */}
-      <div className={`pr-status-icon ${pr.isDraft ? 'draft' : 'open'}`}>
-        {pr.isDraft ? (
+      {/* GitHub PR Status Icon (Green for open, purple for merged, gray for draft) */}
+      <div className={`pr-status-icon ${isMerged ? 'merged' : pr.isDraft ? 'draft' : 'open'}`}>
+        {isMerged ? (
+          <GitMerge size={18} />
+        ) : pr.isDraft ? (
           <GitPullRequestDraft size={18} />
         ) : (
           <GitPullRequest size={18} />
@@ -36,9 +40,11 @@ export default function PRCard({ pr, tabType }) {
           </a>
           <span className="pr-number-label">#{pr.number}</span>
 
-          {pr.isDraft && (
+          {isMerged ? (
+            <span className="gh-label gh-label-merged">Merged</span>
+          ) : pr.isDraft ? (
             <span className="gh-label gh-label-draft">Draft</span>
-          )}
+          ) : null}
         </div>
 
         {/* Secondary Meta Row: org/repo, Exact timestamp, Opened by */}
@@ -73,13 +79,22 @@ export default function PRCard({ pr, tabType }) {
               @{pr.author?.login}
             </a>
           </span>
+
+          {isMerged && pr.mergedAt && (
+            <>
+              <span>•</span>
+              <span style={{ color: 'var(--color-merged-fg)' }}>
+                merged {formatRelativeOnly(pr.mergedAt)}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
       {/* Right Side: Unresolved Comments & Diff stats */}
       <div className="pr-row-right">
-        {/* Unresolved Comments Badge (Specifically for PR I raised) */}
-        {isRaisedTab && (
+        {/* Unresolved Comments Badge (Specifically for open PRs I raised) */}
+        {isRaisedTab && !isMerged && (
           <div>
             {hasUnresolvedComments ? (
               <span
@@ -98,8 +113,8 @@ export default function PRCard({ pr, tabType }) {
           </div>
         )}
 
-        {/* Total Comments if not raised tab */}
-        {!isRaisedTab && pr.totalCommentsCount > 0 && (
+        {/* Total Comments if not showing unresolved */}
+        {(!isRaisedTab || isMerged) && pr.totalCommentsCount > 0 && (
           <span
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-fg-muted)', fontSize: '12px' }}
             title={`${pr.totalCommentsCount} comments`}

@@ -407,6 +407,44 @@ input {
   color: var(--color-fg-default);
 }
 
+.gh-state-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gh-state-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-fg-muted);
+  background: transparent;
+  border: none;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.gh-state-btn:hover {
+  color: var(--color-fg-default);
+}
+
+.gh-state-btn.active {
+  font-weight: 600;
+  color: var(--color-fg-default);
+}
+
+.gh-state-btn.active.open-filter {
+  color: var(--color-fg-default);
+}
+
+.gh-state-btn.active.merged-filter {
+  color: var(--color-merged-fg);
+}
+
 /* PR Row Item (Matches GitHub github.com/pulls list item) */
 .pr-row {
   display: flex;

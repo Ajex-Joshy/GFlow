@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, GitPullRequest, Building2 } from 'lucide-react';
+import { Search, GitPullRequest, GitMerge, Building2 } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
@@ -18,14 +18,18 @@ export default function App() {
 
   // 3 Core Tabs State: 'reviewer' | 'raised' | 'approved'
   const [activeTab, setActiveTab] = useState('reviewer');
+  const [raisedStateFilter, setRaisedStateFilter] = useState('open'); // 'open' | 'merged'
+
   const [prData, setPrData] = useState({
     reviewer: [],
     raised: [],
+    raisedMerged: [],
     approved: [],
   });
   const [counts, setCounts] = useState({
     reviewer: 0,
     raised: 0,
+    raisedMerged: 0,
     approved: 0,
     totalUnresolvedRaisedComments: 0,
   });
@@ -86,8 +90,16 @@ export default function App() {
 
     try {
       const result = await api.getPRSummary();
-      setPrData(result.data || { reviewer: [], raised: [], approved: [] });
-      setCounts(result.counts || { reviewer: 0, raised: 0, approved: 0, totalUnresolvedRaisedComments: 0 });
+      setPrData(result.data || { reviewer: [], raised: [], raisedMerged: [], approved: [] });
+      setCounts(
+        result.counts || {
+          reviewer: 0,
+          raised: 0,
+          raisedMerged: 0,
+          approved: 0,
+          totalUnresolvedRaisedComments: 0,
+        }
+      );
       if (result.organizations) {
         setOrganizations(result.organizations);
       }
@@ -143,14 +155,25 @@ export default function App() {
       setOrganizations([]);
       setSelectedOrg('all');
       setIsAuthenticated(false);
-      setPrData({ reviewer: [], raised: [], approved: [] });
-      setCounts({ reviewer: 0, raised: 0, approved: 0, totalUnresolvedRaisedComments: 0 });
+      setPrData({ reviewer: [], raised: [], raisedMerged: [], approved: [] });
+      setCounts({
+        reviewer: 0,
+        raised: 0,
+        raisedMerged: 0,
+        approved: 0,
+        totalUnresolvedRaisedComments: 0,
+      });
     }
   };
 
-  // Filter PRs by organization and search query
+  // Filter PRs by organization, state filter, and search query
   const currentPRs = useMemo(() => {
-    const list = prData[activeTab] || [];
+    let list = [];
+    if (activeTab === 'raised') {
+      list = raisedStateFilter === 'merged' ? prData.raisedMerged || [] : prData.raised || [];
+    } else {
+      list = prData[activeTab] || [];
+    }
 
     // Filter by Organization
     const orgFiltered = list.filter((pr) => {
@@ -172,7 +195,7 @@ export default function App() {
       const matchNumber = pr.number?.toString().includes(q);
       return matchTitle || matchRepo || matchAuthor || matchNumber;
     });
-  }, [prData, activeTab, selectedOrg, searchQuery, user?.login]);
+  }, [prData, activeTab, raisedStateFilter, selectedOrg, searchQuery, user?.login]);
 
   // If initial auth check is loading
   if (authLoading) {
@@ -219,7 +242,7 @@ export default function App() {
             </h1>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-              {/* Organization Filter Dropdown (Standard GitHub icon & clean text) */}
+              {/* Organization Filter Dropdown */}
               {organizations.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Building2 size={15} style={{ color: 'var(--color-fg-muted)' }} />
@@ -264,7 +287,11 @@ export default function App() {
           {/* UnderlineNav 3 Tabs: Reviewer, Raised, Approved */}
           <Tabs
             activeTab={activeTab}
-            onTabChange={setActiveTab}
+            onTabChange={(tab) => {
+              setActiveTab(tab);
+              // Reset raisedStateFilter to 'open' when navigating
+              if (tab === 'raised') setRaisedStateFilter('open');
+            }}
             counts={counts}
           />
         </div>
@@ -272,16 +299,39 @@ export default function App() {
         {/* GitHub Box Container for PR Rows */}
         <div className="gh-box">
           <div className="gh-box-header">
-            <div className="gh-box-header-title">
-              {currentPRs.length} {currentPRs.length === 1 ? 'Pull Request' : 'Pull Requests'}
-              {selectedOrg !== 'all' && (
-                <span style={{ color: 'var(--color-accent-fg)', fontWeight: 400, marginLeft: '0.5rem' }}>
-                  • {selectedOrg === 'personal' ? 'Personal' : selectedOrg}
-                </span>
-              )}
-            </div>
+            {activeTab === 'raised' ? (
+              /* GitHub-Style Open / Merged State Switcher */
+              <div className="gh-state-filters">
+                <button
+                  type="button"
+                  className={`gh-state-btn ${raisedStateFilter === 'open' ? 'active open-filter' : ''}`}
+                  onClick={() => setRaisedStateFilter('open')}
+                >
+                  <GitPullRequest size={14} style={{ color: raisedStateFilter === 'open' ? 'var(--color-open-fg)' : 'inherit' }} />
+                  <span>{counts.raised || 0} Open</span>
+                </button>
 
-            {activeTab === 'raised' && counts.totalUnresolvedRaisedComments > 0 && (
+                <button
+                  type="button"
+                  className={`gh-state-btn ${raisedStateFilter === 'merged' ? 'active merged-filter' : ''}`}
+                  onClick={() => setRaisedStateFilter('merged')}
+                >
+                  <GitMerge size={14} style={{ color: raisedStateFilter === 'merged' ? 'var(--color-merged-fg)' : 'inherit' }} />
+                  <span>{counts.raisedMerged || 0} Merged</span>
+                </button>
+              </div>
+            ) : (
+              <div className="gh-box-header-title">
+                {currentPRs.length} {currentPRs.length === 1 ? 'Pull Request' : 'Pull Requests'}
+                {selectedOrg !== 'all' && (
+                  <span style={{ color: 'var(--color-accent-fg)', fontWeight: 400, marginLeft: '0.5rem' }}>
+                    • {selectedOrg === 'personal' ? 'Personal' : selectedOrg}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'raised' && raisedStateFilter === 'open' && counts.totalUnresolvedRaisedComments > 0 && (
               <span style={{ color: 'var(--color-attention-fg)', fontSize: '12px', fontWeight: 500 }}>
                 {counts.totalUnresolvedRaisedComments} unresolved comments across open PRs
               </span>
