@@ -1,17 +1,17 @@
 # Contributing to GFlow
 
-Thank you for your interest in contributing to **GFlow**! 🎉
+Thank you for your interest in contributing to **GFlow**.
 
-GFlow is an open-source, high-velocity pull request tracker designed to streamline code review triage across multi-organization workflows. We welcome contributions of all sizes—from fixing typos and adding documentation to introducing new features and performance optimizations.
+GFlow is an open-source, high-velocity pull request tracker designed to streamline code review triage across multi-organization workflows. We welcome contributions of all sizes &mdash; from documentation improvements to bug fixes, feature additions, and performance enhancements.
 
 ---
 
-## 🛠️ Development Setup
+## Development Setup
 
 ### Prerequisites
 * **Node.js**: v18.0.0 or higher
 * **npm**: v9.0.0 or higher
-* A **GitHub account** (and a GitHub Personal Access Token or OAuth App for testing)
+* A **GitHub account** (with a GitHub Personal Access Token or OAuth App for testing)
 
 ### Local Quickstart
 
@@ -23,71 +23,69 @@ GFlow is an open-source, high-velocity pull request tracker designed to streamli
 
 2. **Install Dependencies:**
    ```bash
-   cd server && npm install
-   cd ../client && npm install
-   cd ..
+   npm install --prefix server
+   npm install --prefix client
    ```
 
 3. **Configure Environment:**
    ```bash
    cp .env.example server/.env
    ```
-   *(Optional)* Configure GitHub OAuth credentials in `server/.env`, or simply log in with a Personal Access Token (PAT) with `repo` and `read:org` scopes.
+   Configure GitHub OAuth credentials in `server/.env`, or log in with a Personal Access Token (PAT) with `repo` and `read:org` scopes.
 
-4. **Start the Development Servers:**
-   * **Terminal 1 (Backend):**
-     ```bash
-     npm run server
-     # Runs on http://localhost:5000
-     ```
-   * **Terminal 2 (Frontend):**
-     ```bash
-     npm run client
-     # Runs on http://localhost:5173
-     ```
+4. **Start Development Servers:**
+   ```bash
+   # Terminal 1: Backend API
+   npm run server
+
+   # Terminal 2: Frontend Client
+   npm run client
+   ```
+
+5. **Verify Build & Syntax:**
+   ```bash
+   npm test
+   ```
 
 ---
 
-## 📐 Design & Code Guidelines
+## Design & Code Standards
 
-1. **Design Aesthetics (GitHub Primer Dark Mode):**
+1. **Design System (GitHub Primer Dark Mode):**
    * GFlow strictly adheres to GitHub Primer Dark design tokens (defined in `client/src/index.css`).
-   * Avoid ad-hoc inline styles. Use Primer tokens (`--color-canvas-default`, `--color-border-default`, `--color-fg-muted`, etc.).
-   * Zero generic emojis in core navigation or cards—use Lucide icons or Octicons.
+   * Avoid ad-hoc styling. Use established CSS tokens (`--color-canvas-default`, `--color-border-default`, `--color-fg-muted`, etc.).
+   * Use Lucide icons or Octicons for interface elements.
 
 2. **Responsive by Default:**
-   * All new components and views must be mobile-friendly and touch-friendly. PR cards wrap cleanly on small screens ($\le 768\text{px}$).
+   * All components must remain fully responsive and touch-friendly on viewports &le; 768px.
 
 3. **Performance & Rate Limiting:**
-   * Cache GraphQL responses where possible. Never spam the GitHub API.
-   * Never treat rate limit errors (HTTP 429) as authentication failures (HTTP 401).
+   * Respect GitHub API rate limits. Cache responses where appropriate.
+   * Rate limit responses (HTTP 429) must never be treated as authentication failures (HTTP 401).
 
 ---
 
-## 🚀 Submitting a Pull Request
+## Submitting a Pull Request
 
-1. Create a feature branch:
+1. **Create a feature branch:**
    ```bash
-   git checkout -b feat/my-new-feature
+   git checkout -b feat/my-feature
    ```
-2. Make your changes and test locally:
+2. **Make your changes and verify:**
    ```bash
-   cd client && npm run build
+   npm test
    ```
-3. Commit with a concise, conventional commit message:
+3. **Commit with a descriptive message:**
    ```bash
    git commit -m "feat(ui): add reviewer filter dropdown"
    ```
-4. Push to your fork and open a Pull Request against `main`.
-5. Describe the problem your PR solves, what changed, and include screenshots or recordings for UI changes.
+4. **Push to your fork and submit a Pull Request against `main`.**
+5. **Describe the problem your PR addresses**, what changes were made, and attach screenshots or screen recordings for UI adjustments.
 
 ---
 
-## 🐛 Reporting Bugs & Requesting Features
+## Reporting Issues
 
-* **Bugs:** Open an issue with reproduction steps, your Node version, browser, and error logs if applicable.
-* **Feature Requests:** Open an issue or discussion outlining the user problem, proposed solution, and UX impact.
-
----
-
-Thank you for helping make GFlow better for developers everywhere!
+* **Bug Reports:** Open an issue using the Bug Report form, providing reproduction steps, environment details, and relevant console/server logs.
+* **Feature Requests:** Open an issue using the Feature Request form, detailing the use case, proposed implementation, and workflow impact.
+* **Security Issues:** Report vulnerabilities confidentially following our [Security Policy](SECURITY.md).

@@ -1,4 +1,4 @@
-name: "🐛 Bug Report"
+name: "Bug Report"
 description: File a bug report to help us improve GFlow
 title: "[Bug]: "
 labels: ["bug", "triage"]
@@ -6,14 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report an issue! Please provide as much detail as possible so we can reproduce and resolve it quickly.
+        Please provide as much detail as possible so we can reproduce and resolve the issue quickly.
 
   - type: textarea
     id: description
     attributes:
-      label: Describe the bug
-      description: A clear and concise description of what the bug is.
-      placeholder: When I click on..., the pull request card does not...
+      label: Description
+      description: A clear and concise description of the bug.
+      placeholder: When clicking on..., the pull request card does not...
     validations:
       required: true
 

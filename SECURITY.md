@@ -1,46 +1,46 @@
 # Security Policy
 
-The security of GFlow and its users' GitHub authentication tokens is taken very seriously.
+The security of GFlow and its users' GitHub credentials is taken seriously.
 
 ---
 
-## 🛡️ Supported Versions
+## Supported Versions
 
-We release patches and security fixes for the current major release:
+Security updates are provided for the active release line:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.x     | :white_check_mark: |
-| < 1.0   | :x:                |
-
----
-
-## 🔒 Reporting a Vulnerability
-
-If you discover a security vulnerability in GFlow, please **DO NOT** open a public GitHub issue. Public issues disclose vulnerabilities before a fix is available.
-
-Instead, please report vulnerabilities responsibly using one of the following methods:
-
-1. **GitHub Private Security Advisory:** Submit an advisory directly via the **Security** tab of the GitHub repository.
-2. **Email Maintainer:** Send an email with full details and reproduction steps to:
-   - **Ajex Joshy**: `ajexjoshywork@gmail.com`
-
-### What to Include:
-* Type of issue (e.g. CSRF, XSS, token leakage, authentication bypass).
-* Clear, reproducible step-by-step instructions or proof-of-concept.
-* Affected components (frontend client, backend Express server, Docker configuration).
-
-### Response Timeline:
-* **Initial Response:** Within 48 hours acknowledging receipt of your report.
-* **Status Updates:** Every 3–5 business days until a resolution is ready.
-* **Public Release & Credit:** Once a patched release is published, we will publicly acknowledge your responsible disclosure (unless you prefer to remain anonymous).
+| Version | Supported |
+| ------- | --------- |
+| 1.x     | Yes       |
+| < 1.0   | No        |
 
 ---
 
-## 🔐 Security Best Practices in GFlow
+## Reporting a Vulnerability
 
-GFlow is built with defense-in-depth security principles:
-* **No Plaintext Token Storage:** Personal Access Tokens and OAuth credentials are saved exclusively in secure, `httpOnly`, `sameSite: 'lax'` session cookies.
-* **No Database Token Persistence:** GFlow does not maintain an external database of user credentials.
-* **Strict CORS:** The Express API strictly restricts cross-origin resource requests to authorized frontend origins.
-* **Sanitized Client Rendering:** React DOM prevents cross-site scripting (XSS) attacks by escaping all user-supplied PR titles, comments, and author handles by default.
+If you discover a security vulnerability in GFlow, please do not open a public issue.
+
+Report vulnerabilities responsibly using one of the following methods:
+
+1. **GitHub Security Advisory:** Submit an advisory privately via the **Security** tab of the GitHub repository.
+2. **Email Maintainer:** Send an email with reproduction details directly to:
+   * **Ajex Joshy**: `ajexjoshywork@gmail.com`
+
+### What to Include
+* Description of the vulnerability (e.g. CSRF, XSS, credential leakage, authentication bypass).
+* Step-by-step instructions or minimal proof-of-concept to reproduce the issue.
+* Impact assessment and affected components.
+
+### Response Timeline
+* **Acknowledgment:** Within 48 hours of initial report.
+* **Status Updates:** Every 3–5 business days until a patch is verified.
+* **Release & Credit:** Public disclosure occurs alongside the patched release with credit to the reporter (unless anonymity is requested).
+
+---
+
+## Security Architecture
+
+GFlow implements defense-in-depth principles:
+* **No Plaintext Credential Storage:** Personal Access Tokens and OAuth session tokens are stored exclusively in HTTP-only, `sameSite: 'lax'` encrypted session cookies.
+* **No External Database:** GFlow does not persist user credentials to external databases.
+* **Strict CORS:** The backend API restricts cross-origin resource access to authorized frontend origins.
+* **Sanitized Rendering:** React DOM escapes user-provided content by default to prevent cross-site scripting (XSS).
