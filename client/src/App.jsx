@@ -219,7 +219,7 @@ export default function App() {
             </h1>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-              {/* Organization Filter Dropdown */}
+              {/* Organization Filter Dropdown (Standard GitHub icon & clean text) */}
               {organizations.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Building2 size={15} style={{ color: 'var(--color-fg-muted)' }} />
@@ -234,7 +234,7 @@ export default function App() {
                     <option value="personal">Personal (@{user?.login})</option>
                     {organizations.map((org) => (
                       <option key={org.id || org.login} value={org.login}>
-                        🏢 {org.name || org.login}
+                        {org.name || org.login}
                       </option>
                     ))}
                   </select>

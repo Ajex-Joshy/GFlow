@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Key } from 'lucide-react';
+import { Key, Shield } from 'lucide-react';
 
 export default function LoginView({ onLoginWithToken, oauthConfigured, error }) {
   const [patToken, setPatToken] = useState('');
@@ -109,8 +109,9 @@ export default function LoginView({ onLoginWithToken, oauthConfigured, error }) 
             Create token with <code>repo</code>, <code>read:user</code>, <code>read:org</code>
           </a>
         </div>
-        <div style={{ marginTop: '0.5rem', color: 'var(--color-fg-muted)' }}>
-          🏢 If your organization uses SAML SSO, click <strong>Configure SSO &rarr; Authorize</strong> on GitHub next to the token.
+        <div style={{ marginTop: '0.5rem', color: 'var(--color-fg-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+          <Shield size={12} />
+          <span>If your organization uses SAML SSO, click <strong>Configure SSO &rarr; Authorize</strong> on GitHub.</span>
         </div>
       </div>
     </div>

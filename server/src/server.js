@@ -43,6 +43,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 PR Tracker API Server running on http://localhost:${PORT}`);
-  console.log(`📡 Accepting client requests from ${CLIENT_URL}`);
+  console.log(`PR Tracker API Server running on http://localhost:${PORT}`);
+  console.log(`Accepting client requests from ${CLIENT_URL}`);
 });
