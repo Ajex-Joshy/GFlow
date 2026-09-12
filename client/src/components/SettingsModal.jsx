@@ -97,6 +97,16 @@ export default function SettingsModal({
     triggerSavedToast();
   };
 
+  const handleToggleResolvedBadge = () => {
+    const updated = {
+      ...currentSettings,
+      showResolvedBadge: currentSettings.showResolvedBadge === false ? true : false,
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+    triggerSavedToast();
+  };
+
   const handleChangeDefaultOrg = (orgValue) => {
     const updated = {
       ...currentSettings,
@@ -355,6 +365,23 @@ export default function SettingsModal({
                   </div>
                   <p className="settings-desc">
                     Display changed file count alongside additions and deletions (e.g. <code>12 files</code> • <code>+1,947 -26</code>) directly on PR cards.
+                  </p>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 className="settings-heading">Resolved Comments Badge</h3>
+                    <label className="gh-toggle-label">
+                      <input
+                        type="checkbox"
+                        checked={currentSettings.showResolvedBadge !== false}
+                        onChange={handleToggleResolvedBadge}
+                      />
+                      <span className="gh-toggle-slider" />
+                    </label>
+                  </div>
+                  <p className="settings-desc">
+                    Show a green <code>✓ Resolved</code> badge on PRs where all comment threads have been addressed. Unresolved threads (<code>💬 X unresolved</code>) will always be highlighted.
                   </p>
                 </div>
               </div>

@@ -43,6 +43,7 @@ export default function PRCard({
   showReviewWaitTimer = true,
   showReviewerStatus = true,
   showDiffStats = true,
+  showResolvedBadge = true,
   isSelected = false,
   cardRef = null,
 }) {
@@ -235,7 +236,7 @@ export default function PRCard({
                 <MessageSquare size={12} />
                 <span>{pr.unresolvedCommentsCount} unresolved</span>
               </span>
-            ) : pr.totalCommentsCount > 0 ? (
+            ) : (showResolvedBadge && pr.totalCommentsCount > 0) ? (
               <span className="resolved-badge" title="All review threads resolved">
                 <Check size={12} />
                 <span>Resolved</span>

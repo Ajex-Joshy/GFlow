@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS = {
   showReviewWaitTimer: true,
   showReviewerStatus: true,
   showDiffStats: true,
+  showResolvedBadge: true,
 };
 
 /**

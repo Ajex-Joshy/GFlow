@@ -597,6 +597,7 @@ export default function App() {
                   showReviewWaitTimer={settings.showReviewWaitTimer !== false}
                   showReviewerStatus={settings.showReviewerStatus !== false}
                   showDiffStats={settings.showDiffStats !== false}
+                  showResolvedBadge={settings.showResolvedBadge !== false}
                 />
               ))}
             </div>
