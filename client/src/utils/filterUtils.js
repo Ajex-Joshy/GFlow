@@ -41,20 +41,61 @@ export function saveSettings(settings) {
 }
 
 /**
- * Detects if a PR was created by a known bot (Dependabot, Renovate, Snyk, GitHub Actions, etc.)
+ * Detects if a PR was created by a bot or automated tool
+ * Checks author login, bot title prefixes ([Snyk], [Dependabot], etc.), and dependency patterns.
  */
 export function isBotPR(pr) {
-  if (!pr?.author?.login) return false;
-  const login = pr.author.login.toLowerCase();
+  if (!pr) return false;
 
-  return (
+  // 1. Check author username
+  const login = (pr.author?.login || '').toLowerCase();
+  if (
     login.includes('[bot]') ||
     login.endsWith('-bot') ||
     login.startsWith('dependabot') ||
     login.startsWith('renovate') ||
     login.startsWith('greenkeeper') ||
     login.startsWith('snyk') ||
-    login === 'ghost' ||
-    login.startsWith('github-actions')
-  );
+    login.startsWith('github-actions') ||
+    login === 'ghost'
+  ) {
+    return true;
+  }
+
+  // 2. Check title for automated tool signatures (Snyk, Dependabot, Renovate, dependency bumps)
+  // Many tools like Snyk open PRs under the developer's personal account!
+  const title = (pr.title || '').toLowerCase().trim();
+  if (
+    title.startsWith('[snyk]') ||
+    title.includes('[snyk]') ||
+    title.startsWith('[dependabot]') ||
+    title.startsWith('[renovate]') ||
+    title.startsWith('chore(deps)') ||
+    title.startsWith('chore(deps-dev)') ||
+    title.startsWith('build(deps)') ||
+    title.startsWith('build(deps-dev)') ||
+    (title.startsWith('bump ') && title.includes(' from ') && title.includes(' to ')) ||
+    title.startsWith('update dependency ') ||
+    title.startsWith('pin dependency ')
+  ) {
+    return true;
+  }
+
+  // 3. Check labels for dependency / bot tags
+  if (Array.isArray(pr.labels)) {
+    const hasBotLabel = pr.labels.some((l) => {
+      const name = (l.name || '').toLowerCase();
+      return (
+        name === 'dependencies' ||
+        name === 'dependency' ||
+        name === 'snyk' ||
+        name === 'dependabot' ||
+        name === 'renovate' ||
+        name === 'bot'
+      );
+    });
+    if (hasBotLabel) return true;
+  }
+
+  return false;
 }
