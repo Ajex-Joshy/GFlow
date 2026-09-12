@@ -167,11 +167,11 @@ const PR_FIELDS = `
 export const getReviewerPRs = async (token, username) => {
   const client = createClient(token);
   // review-requested:@me matches direct user review requests AND team review requests in organizations
-  const query = `is:open is:pr review-requested:@me archived:false`;
+  const queryString = `is:open is:pr review-requested:@me archived:false`;
 
   const data = await client(`
-    query ($query: String!) {
-      search(query: $query, type: ISSUE, first: 50) {
+    query ($queryString: String!) {
+      search(query: $queryString, type: ISSUE, first: 50) {
         issueCount
         nodes {
           ... on PullRequest {
@@ -180,7 +180,7 @@ export const getReviewerPRs = async (token, username) => {
         }
       }
     }
-  `, { query });
+  `, { queryString });
 
   return (data.search?.nodes || []).map((node) => formatPRNode(node));
 };
@@ -190,11 +190,11 @@ export const getReviewerPRs = async (token, username) => {
  */
 export const getRaisedPRs = async (token, username) => {
   const client = createClient(token);
-  const query = `is:open is:pr author:@me archived:false`;
+  const queryString = `is:open is:pr author:@me archived:false`;
 
   const data = await client(`
-    query ($query: String!) {
-      search(query: $query, type: ISSUE, first: 50) {
+    query ($queryString: String!) {
+      search(query: $queryString, type: ISSUE, first: 50) {
         issueCount
         nodes {
           ... on PullRequest {
@@ -203,7 +203,7 @@ export const getRaisedPRs = async (token, username) => {
         }
       }
     }
-  `, { query });
+  `, { queryString });
 
   return (data.search?.nodes || []).map((node) => formatPRNode(node));
 };
@@ -213,11 +213,11 @@ export const getRaisedPRs = async (token, username) => {
  */
 export const getApprovedPRs = async (token, username) => {
   const client = createClient(token);
-  const query = `is:pr reviewed-by:@me review:approved archived:false`;
+  const queryString = `is:pr reviewed-by:@me review:approved archived:false`;
 
   const data = await client(`
-    query ($query: String!) {
-      search(query: $query, type: ISSUE, first: 50) {
+    query ($queryString: String!) {
+      search(query: $queryString, type: ISSUE, first: 50) {
         issueCount
         nodes {
           ... on PullRequest {
@@ -232,46 +232,12 @@ export const getApprovedPRs = async (token, username) => {
         }
       }
     }
-  `, { query });
+  `, { queryString });
 
   return (data.search?.nodes || []).map((node) => {
     const lastApproval = node.reviews?.nodes?.[0]?.submittedAt || null;
     return formatPRNode(node, { approvedAt: lastApproval });
   });
-};
-
-/**
- * 4. Open PRs in organizations where user is a member
- */
-export const getOrganizationPRs = async (token, organizations = []) => {
-  if (!organizations || organizations.length === 0) {
-    return [];
-  }
-
-  const client = createClient(token);
-  // Build query: org:org1 org:org2 ...
-  const orgFilters = organizations.map((org) => `org:${org.login}`).join(' ');
-  const query = `is:open is:pr ${orgFilters} archived:false`;
-
-  try {
-    const data = await client(`
-      query ($query: String!) {
-        search(query: $query, type: ISSUE, first: 50) {
-          issueCount
-          nodes {
-            ... on PullRequest {
-              ${PR_FIELDS}
-            }
-          }
-        }
-      }
-    `, { query });
-
-    return (data.search?.nodes || []).map((node) => formatPRNode(node));
-  } catch (err) {
-    console.error('Error fetching organization PRs:', err.message);
-    return [];
-  }
 };
 
 /**
