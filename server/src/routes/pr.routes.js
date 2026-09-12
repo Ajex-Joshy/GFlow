@@ -13,11 +13,23 @@ const router = express.Router();
 // Apply auth middleware to all PR routes
 router.use(requireAuth);
 
+// In-memory cache for PR summaries (60-second TTL) to protect GitHub API rate limit
+const summaryCache = new Map();
+const SUMMARY_CACHE_TTL_MS = 60 * 1000;
+
 /**
  * GET /api/prs/summary
  * Fetches PRs for the 3 core tabs (Reviewer, Raised, Approved) across personal and org repos
  */
 router.get('/summary', async (req, res) => {
+  const cached = summaryCache.get(req.ghToken);
+  const now = Date.now();
+
+  // If cached data is fresh (< 60s), serve instantly without calling GitHub
+  if (cached && (now - cached.timestamp < SUMMARY_CACHE_TTL_MS) && req.query.force !== 'true') {
+    return res.json(cached.payload);
+  }
+
   try {
     const user = await getUserProfile(req.ghToken);
     const username = user.login;
@@ -48,7 +60,7 @@ router.get('/summary', async (req, res) => {
       0
     );
 
-    res.json({
+    const payload = {
       user,
       organizations: orgs,
       counts: {
@@ -65,9 +77,34 @@ router.get('/summary', async (req, res) => {
         approved: approvedPRs,
       },
       fetchedAt: new Date().toISOString(),
-    });
+    };
+
+    summaryCache.set(req.ghToken, { payload, timestamp: now });
+    res.json(payload);
   } catch (error) {
     console.error('Error fetching PR summary:', error.message);
+    const isRateLimit =
+      error.message?.toLowerCase().includes('rate limit') ||
+      error.status === 403 ||
+      error.status === 429;
+
+    // If rate limited but we have cached data, return the cache gracefully
+    if (cached) {
+      return res.json({
+        ...cached.payload,
+        isStale: true,
+        rateLimited: isRateLimit,
+      });
+    }
+
+    if (isRateLimit) {
+      return res.status(429).json({
+        error: 'GitHub API Rate Limit Exceeded',
+        message: 'GitHub API rate limit exceeded. Data will update automatically once the hourly window resets.',
+        rateLimited: true,
+      });
+    }
+
     res.status(500).json({
       error: 'Failed to fetch PR summary',
       message: error.message,

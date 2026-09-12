@@ -79,9 +79,14 @@ export default function App() {
           setOrganizations(authData.user.organizations?.nodes || []);
           setIsAuthenticated(true);
         }
-      } catch {
-        setIsAuthenticated(false);
-        setUser(null);
+      } catch (err) {
+        if (err.status === 429 || err.message?.toLowerCase().includes('rate limit')) {
+          setIsAuthenticated(true);
+          setFetchError('GitHub API hourly rate limit reached. Existing data is preserved; retrying automatically.');
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+        }
       } finally {
         setAuthLoading(false);
       }
@@ -107,6 +112,8 @@ export default function App() {
       if (err.status === 401) {
         setIsAuthenticated(false);
         setUser(null);
+      } else if (err.status === 429 || err.message?.toLowerCase().includes('rate limit')) {
+        setFetchError('GitHub API hourly rate limit reached. Data will refresh when the window resets.');
       } else {
         setFetchError(err.message || 'Failed to fetch Pull Requests.');
       }

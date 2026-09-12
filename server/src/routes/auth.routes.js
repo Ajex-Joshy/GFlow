@@ -110,6 +110,9 @@ router.post('/token', async (req, res) => {
   }
 });
 
+// In-memory cache for user profiles to survive GitHub rate limit windows
+const userProfileCache = new Map();
+
 /**
  * GET /api/auth/me
  * Retrieves current user profile from authenticated session
@@ -117,12 +120,33 @@ router.post('/token', async (req, res) => {
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const profile = await getUserProfile(req.ghToken);
+    userProfileCache.set(req.ghToken, profile);
     res.json({
       authenticated: true,
       user: profile,
     });
   } catch (error) {
     console.error('Fetch me error:', error.message);
+    const isRateLimit =
+      error.message?.toLowerCase().includes('rate limit') ||
+      error.status === 403 ||
+      error.status === 429;
+
+    if (isRateLimit) {
+      if (userProfileCache.has(req.ghToken)) {
+        return res.json({
+          authenticated: true,
+          user: userProfileCache.get(req.ghToken),
+          rateLimited: true,
+        });
+      }
+      return res.status(429).json({
+        authenticated: true,
+        rateLimited: true,
+        error: 'GitHub API rate limit exceeded. Your session is active; retrying shortly.',
+      });
+    }
+
     res.status(401).json({
       authenticated: false,
       error: 'Session expired or token invalid.',
