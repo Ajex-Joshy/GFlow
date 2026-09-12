@@ -1,7 +1,7 @@
 import React from 'react';
-import { RefreshCw, LogOut, ExternalLink } from 'lucide-react';
+import { RefreshCw, LogOut, ExternalLink, Settings } from 'lucide-react';
 
-export default function Navbar({ user, onRefresh, isRefreshing, onLogout }) {
+export default function Navbar({ user, onRefresh, isRefreshing, onLogout, onOpenSettings }) {
   return (
     <header className="navbar">
       <div className="navbar-inner">
@@ -32,6 +32,15 @@ export default function Navbar({ user, onRefresh, isRefreshing, onLogout }) {
             >
               <RefreshCw size={13} />
               <span>Refresh</span>
+            </button>
+
+            <button
+              className="gh-btn"
+              onClick={onOpenSettings}
+              title="Settings & Noise Filtering"
+            >
+              <Settings size={13} />
+              <span>Settings</span>
             </button>
 
             <a

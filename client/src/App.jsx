@@ -1,16 +1,23 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, GitPullRequest, GitMerge, Building2 } from 'lucide-react';
+import { Search, GitPullRequest, GitMerge, Building2, Bot } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
 import PRCard from './components/PRCard';
 import EmptyState from './components/EmptyState';
 import LoginView from './components/LoginView';
+import SettingsModal from './components/SettingsModal';
+import { loadSettings, saveSettings, isBotPR } from './utils/filterUtils';
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [organizations, setOrganizations] = useState([]);
-  const [selectedOrg, setSelectedOrg] = useState('all'); // 'all' | 'personal' | orgLogin
+  const [settings, setSettings] = useState(loadSettings);
+  const [selectedOrg, setSelectedOrg] = useState(() => {
+    const s = loadSettings();
+    return s.defaultOrg || 'all';
+  });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [oauthConfigured, setOauthConfigured] = useState(false);
@@ -137,29 +144,76 @@ export default function App() {
     } finally {
       setUser(null);
       setOrganizations([]);
-      setSelectedOrg('all');
+      setSelectedOrg(settings.defaultOrg || 'all');
       setIsAuthenticated(false);
       setPrData({ reviewer: [], raised: [], raisedMerged: [], approved: [] });
     }
   };
 
-  // Compute organization-filtered datasets and dynamic counts
+  // Handle Settings Save
+  const handleSaveSettings = (newSettings) => {
+    setSettings(newSettings);
+    saveSettings(newSettings);
+  };
+
+  // Extract all unique repositories available in loaded PRs
+  const availableRepos = useMemo(() => {
+    const all = [
+      ...(prData.reviewer || []),
+      ...(prData.raised || []),
+      ...(prData.raisedMerged || []),
+      ...(prData.approved || []),
+    ];
+    const set = new Set();
+    all.forEach((pr) => {
+      if (pr.repository?.nameWithOwner) {
+        set.add(pr.repository.nameWithOwner);
+      }
+    });
+    return Array.from(set).sort();
+  }, [prData]);
+
+  // Compute organization-filtered, bot-filtered, and repo-excluded datasets and dynamic counts
   const filteredData = useMemo(() => {
-    const filterByOrg = (list = []) => {
-      if (selectedOrg === 'all') return list;
+    let hiddenBotsCount = 0;
+    let hiddenExcludedReposCount = 0;
+
+    const applyFilters = (list = []) => {
       return list.filter((pr) => {
+        // 1. Organization filter
         const owner = pr.repository?.owner;
-        if (selectedOrg === 'personal') {
-          return owner?.toLowerCase() === user?.login?.toLowerCase();
+        if (selectedOrg !== 'all') {
+          if (selectedOrg === 'personal') {
+            if (owner?.toLowerCase() !== user?.login?.toLowerCase()) return false;
+          } else if (owner?.toLowerCase() !== selectedOrg?.toLowerCase()) {
+            return false;
+          }
         }
-        return owner?.toLowerCase() === selectedOrg?.toLowerCase();
+
+        // 2. Excluded repositories filter (blacklist)
+        if (
+          settings.excludedRepos?.some(
+            (excluded) => excluded.toLowerCase() === pr.repository?.nameWithOwner?.toLowerCase()
+          )
+        ) {
+          hiddenExcludedReposCount++;
+          return false;
+        }
+
+        // 3. Bot filter
+        if (settings.ignoreBots && isBotPR(pr)) {
+          hiddenBotsCount++;
+          return false;
+        }
+
+        return true;
       });
     };
 
-    const reviewer = filterByOrg(prData.reviewer);
-    const raised = filterByOrg(prData.raised);
-    const raisedMerged = filterByOrg(prData.raisedMerged);
-    const approved = filterByOrg(prData.approved);
+    const reviewer = applyFilters(prData.reviewer);
+    const raised = applyFilters(prData.raised);
+    const raisedMerged = applyFilters(prData.raisedMerged);
+    const approved = applyFilters(prData.approved);
 
     const totalUnresolvedRaisedComments = raised.reduce(
       (sum, pr) => sum + (pr.unresolvedCommentsCount || 0),
@@ -171,6 +225,8 @@ export default function App() {
       raised,
       raisedMerged,
       approved,
+      hiddenBotsCount,
+      hiddenExcludedReposCount,
       counts: {
         reviewer: reviewer.length,
         raised: raised.length,
@@ -179,7 +235,7 @@ export default function App() {
         totalUnresolvedRaisedComments,
       },
     };
-  }, [prData, selectedOrg, user?.login]);
+  }, [prData, selectedOrg, settings.ignoreBots, settings.excludedRepos, user?.login]);
 
   // Filter active list by search query
   const currentPRs = useMemo(() => {
@@ -236,6 +292,7 @@ export default function App() {
         onRefresh={() => loadPRData(false)}
         isRefreshing={isRefreshing}
         onLogout={handleLogout}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       <main className="main-content">
@@ -289,7 +346,7 @@ export default function App() {
             </div>
           )}
 
-          {/* UnderlineNav 3 Tabs: Reviewer, Raised, Approved (dynamically reflects selected organization) */}
+          {/* UnderlineNav 3 Tabs: Reviewer, Raised, Approved (dynamically reflects selected organization & filters) */}
           <Tabs
             activeTab={activeTab}
             onTabChange={(tab) => {
@@ -336,11 +393,30 @@ export default function App() {
               </div>
             )}
 
-            {activeTab === 'raised' && raisedStateFilter === 'open' && filteredData.counts.totalUnresolvedRaisedComments > 0 && (
-              <span style={{ color: 'var(--color-attention-fg)', fontSize: '12px', fontWeight: 500 }}>
-                {filteredData.counts.totalUnresolvedRaisedComments} unresolved comments across open PRs
-              </span>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {/* Bot filter indicator if bots are hidden */}
+              {settings.ignoreBots && (
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--color-fg-muted)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                  }}
+                  title="Bot PRs (Dependabot, Renovate, etc.) are hidden. Configure in Settings."
+                >
+                  <Bot size={12} />
+                  Bots hidden
+                </span>
+              )}
+
+              {activeTab === 'raised' && raisedStateFilter === 'open' && filteredData.counts.totalUnresolvedRaisedComments > 0 && (
+                <span style={{ color: 'var(--color-attention-fg)', fontSize: '12px', fontWeight: 500 }}>
+                  {filteredData.counts.totalUnresolvedRaisedComments} unresolved comments across open PRs
+                </span>
+              )}
+            </div>
           </div>
 
           {isLoadingPRs ? (
@@ -371,6 +447,17 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* Settings & Filtering Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSaveSettings={handleSaveSettings}
+        user={user}
+        organizations={organizations}
+        availableRepos={availableRepos}
+      />
     </div>
   );
 }
