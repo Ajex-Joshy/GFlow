@@ -95,3 +95,25 @@ export function formatReviewWaitTimer(isoString) {
 
   return `${hh} : ${mm}`;
 }
+
+/**
+ * Format elapsed duration since review was requested into standard "HH:MM" format
+ * e.g. "04:32", "06:15"
+ */
+export function formatHHMM(isoString) {
+  if (!isoString) return '00:00';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '00:00';
+
+  const now = new Date();
+  const diffMs = Math.max(0, now - date);
+
+  const totalMinutes = Math.floor(diffMs / 60000);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  const hh = String(totalHours).padStart(2, '0');
+  const mm = String(minutes).padStart(2, '0');
+
+  return `${hh}:${mm}`;
+}

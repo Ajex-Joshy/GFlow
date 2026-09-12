@@ -134,6 +134,7 @@ const formatPRNode = (pr, extra = {}) => {
       return pr.createdAt;
     })(),
     reviewers: (() => {
+      const timelineEvents = pr.timelineItems?.nodes || [];
       const latestReviewsMap = new Map();
       (pr.latestReviews?.nodes || []).forEach((rev) => {
         const revLogin = rev.author?.login;
@@ -157,11 +158,17 @@ const formatPRNode = (pr, extra = {}) => {
         const key = reqLogin.toLowerCase();
         seen.add(key);
 
+        const matchingTimeline = [...timelineEvents].reverse().find((evt) => {
+          const l = evt.requestedReviewer?.login || evt.requestedReviewer?.name;
+          return l?.toLowerCase() === key;
+        });
+
         list.push({
           login: reqLogin,
           avatarUrl: req.requestedReviewer?.avatarUrl || null,
           state: 'PENDING',
           isTeam: !req.requestedReviewer?.login,
+          requestedAt: matchingTimeline?.createdAt || pr.createdAt,
         });
       });
 

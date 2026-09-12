@@ -12,7 +12,26 @@ import {
   formatPRTimestamp,
   formatRelativeOnly,
   formatReviewWaitTimer,
+  formatHHMM,
 } from '../utils/dateFormatter';
+
+function getReviewerTooltip(rev, pr) {
+  const name = rev.login ? `@${rev.login}: ` : '';
+  if (rev.state === 'APPROVED') {
+    const time = rev.submittedAt ? formatRelativeOnly(rev.submittedAt) : 'recently';
+    return `${name}approved ${time}`;
+  }
+  if (rev.state === 'CHANGES_REQUESTED') {
+    const time = rev.submittedAt ? formatRelativeOnly(rev.submittedAt) : 'recently';
+    return `${name}requested changes ${time}`;
+  }
+  if (rev.state === 'COMMENTED') {
+    const time = rev.submittedAt ? formatRelativeOnly(rev.submittedAt) : 'recently';
+    return `${name}commented ${time}`;
+  }
+  const waitTime = formatHHMM(rev.requestedAt || pr.reviewRequestedAt || pr.createdAt);
+  return `${name}pending ${waitTime}`;
+}
 
 export default function PRCard({
   pr,
@@ -160,70 +179,38 @@ export default function PRCard({
               </span>
             </>
           )}
-
-          {/* Unresolved / Resolved status on left side (clean native text, no pill) */}
-          {isRaisedTab && !isMerged && (
-            <>
-              <span>•</span>
-              {hasUnresolvedComments ? (
-                <span
-                  className="unresolved-text"
-                  title={`${pr.unresolvedCommentsCount} unresolved review thread${pr.unresolvedCommentsCount > 1 ? 's' : ''}`}
-                >
-                  <MessageSquare size={12} />
-                  <span>{pr.unresolvedCommentsCount} unresolved</span>
-                </span>
-              ) : (
-                <span className="resolved-text" title="All review threads resolved">
-                  <Check size={12} strokeWidth={2.5} />
-                  <span>Resolved</span>
-                </span>
-              )}
-            </>
-          )}
         </div>
-
-        {/* Reviewers Decision Progress Line (Raised PRs) */}
-        {isRaisedTab && showReviewerStatus && pr.reviewers?.length > 0 && (
-          <div className="pr-reviewers-line">
-            <span className="pr-reviewers-label">Reviewers:</span>
-            <div className="pr-reviewers-chips">
-              {pr.reviewers.map((rev) => (
-                <span
-                  key={rev.login}
-                  className={`reviewer-status-chip ${rev.state.toLowerCase()}`}
-                  title={`@${rev.login}: ${
-                    rev.state === 'APPROVED'
-                      ? 'Approved'
-                      : rev.state === 'CHANGES_REQUESTED'
-                      ? 'Changes requested'
-                      : rev.state === 'COMMENTED'
-                      ? 'Commented'
-                      : 'Awaiting review'
-                  }`}
-                >
-                  {rev.avatarUrl && (
-                    <img src={rev.avatarUrl} alt={rev.login} className="reviewer-chip-avatar" />
-                  )}
-                  <span className="reviewer-chip-name">@{rev.login}</span>
-                  {rev.state === 'APPROVED' ? (
-                    <Check size={11} strokeWidth={2.8} className="reviewer-status-icon approved" />
-                  ) : rev.state === 'CHANGES_REQUESTED' ? (
-                    <X size={11} strokeWidth={2.8} className="reviewer-status-icon changes-requested" />
-                  ) : rev.state === 'COMMENTED' ? (
-                    <MessageSquare size={10} className="reviewer-status-icon commented" />
-                  ) : (
-                    <Clock size={10} className="reviewer-status-icon pending" />
-                  )}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Right Side: SLA Wait Timer, Unresolved Comments & Diff stats */}
+      {/* Right Side: Reviewers (Raised tab), SLA Wait Timer (Reviewer tab), Unresolved Comments & Diff stats */}
       <div className="pr-row-right">
+        {/* Reviewers Decision Chips on Right Side (Raised PRs) */}
+        {isRaisedTab && showReviewerStatus && pr.reviewers?.length > 0 && (
+          <div className="pr-reviewers-chips">
+            {pr.reviewers.map((rev) => (
+              <span
+                key={rev.login}
+                className={`reviewer-status-chip ${rev.state.toLowerCase()}`}
+                title={getReviewerTooltip(rev, pr)}
+              >
+                {rev.avatarUrl && (
+                  <img src={rev.avatarUrl} alt={rev.login} className="reviewer-chip-avatar" />
+                )}
+                <span className="reviewer-chip-name">@{rev.login}</span>
+                {rev.state === 'APPROVED' ? (
+                  <Check size={11} strokeWidth={2.8} className="reviewer-status-icon approved" />
+                ) : rev.state === 'CHANGES_REQUESTED' ? (
+                  <X size={11} strokeWidth={2.8} className="reviewer-status-icon changes-requested" />
+                ) : rev.state === 'COMMENTED' ? (
+                  <MessageSquare size={10} className="reviewer-status-icon commented" />
+                ) : (
+                  <Clock size={10} className="reviewer-status-icon pending" />
+                )}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Right-aligned SLA Wait Timer (Reviewer Queue) */}
         {isReviewerTab && showReviewWaitTimer && (
           <div
@@ -232,6 +219,26 @@ export default function PRCard({
           >
             <Clock size={12} className="sla-timer-icon" />
             <span className="sla-timer-time">{reviewWaitTimerFormatted}</span>
+          </div>
+        )}
+
+        {/* Unresolved Comments Badge (Specifically for open PRs I raised) */}
+        {isRaisedTab && !isMerged && (
+          <div>
+            {hasUnresolvedComments ? (
+              <span
+                className="unresolved-badge"
+                title={`${pr.unresolvedCommentsCount} unresolved review thread${pr.unresolvedCommentsCount > 1 ? 's' : ''}`}
+              >
+                <MessageSquare size={12} />
+                <span>{pr.unresolvedCommentsCount} unresolved</span>
+              </span>
+            ) : (
+              <span className="resolved-badge" title="All review threads resolved">
+                <Check size={12} />
+                <span>Resolved</span>
+              </span>
+            )}
           </div>
         )}
 
