@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS = {
   defaultOrg: 'all',
   showApprovedTab: true,
   showLabels: true,
+  showDetailedTimestamp: true,
 };
 
 /**

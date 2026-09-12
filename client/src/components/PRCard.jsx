@@ -8,7 +8,12 @@ import {
 } from 'lucide-react';
 import { formatPRTimestamp, formatRelativeOnly } from '../utils/dateFormatter';
 
-export default function PRCard({ pr, tabType, showLabels = true }) {
+export default function PRCard({
+  pr,
+  tabType,
+  showLabels = true,
+  showDetailedTimestamp = true,
+}) {
   const isRaisedTab = tabType === 'raised';
   const isMerged = pr.state === 'MERGED' || Boolean(pr.mergedAt);
   const hasUnresolvedComments = (pr.unresolvedCommentsCount || 0) > 0;
@@ -80,9 +85,13 @@ export default function PRCard({ pr, tabType, showLabels = true }) {
 
           <span>•</span>
 
-          {/* Exact timestamp format: Created: 1d 18h 1m ago (10 Sep, 11:37 PM) */}
+          {/* Timestamp: Detailed "Created: 2d 1h 52m ago (10 Sep, 4:58 PM)" or compact "opened 2d ago" */}
           <span className="timestamp-text">
-            <strong>{createdFormatted}</strong>
+            {showDetailedTimestamp ? (
+              <strong>{createdFormatted}</strong>
+            ) : (
+              <span>opened {formatRelativeOnly(pr.createdAt)}</span>
+            )}
           </span>
 
           <span>•</span>

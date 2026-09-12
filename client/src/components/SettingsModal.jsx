@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building2, Bot, Ban, Plus, Trash2, Check, Tag, CheckCircle2 } from 'lucide-react';
+import { X, Building2, Bot, Ban, Plus, Trash2, Check, Tag, CheckCircle2, Clock } from 'lucide-react';
 
 export default function SettingsModal({
   isOpen,
@@ -41,6 +41,16 @@ export default function SettingsModal({
     const updated = {
       ...currentSettings,
       showLabels: currentSettings.showLabels === false ? true : false,
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+    triggerSavedToast();
+  };
+
+  const handleToggleDetailedTimestamp = () => {
+    const updated = {
+      ...currentSettings,
+      showDetailedTimestamp: currentSettings.showDetailedTimestamp === false ? true : false,
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -220,6 +230,23 @@ export default function SettingsModal({
                   </div>
                   <p className="settings-desc">
                     Display repository labels (e.g. bug, enhancement, high-priority) directly next to PR titles.
+                  </p>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 className="settings-heading">Detailed Creation Timestamps</h3>
+                    <label className="gh-toggle-label">
+                      <input
+                        type="checkbox"
+                        checked={currentSettings.showDetailedTimestamp !== false}
+                        onChange={handleToggleDetailedTimestamp}
+                      />
+                      <span className="gh-toggle-slider" />
+                    </label>
+                  </div>
+                  <p className="settings-desc">
+                    Display exact relative and calendar time: <code>Created: 2d 1h 52m ago (10 Sep, 4:58 PM)</code>. Turn off for compact relative time (e.g. <code>2d ago</code>).
                   </p>
                 </div>
               </div>

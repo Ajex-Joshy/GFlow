@@ -446,6 +446,7 @@ export default function App() {
                   pr={pr}
                   tabType={activeTab}
                   showLabels={settings.showLabels !== false}
+                  showDetailedTimestamp={settings.showDetailedTimestamp !== false}
                 />
               ))}
             </div>
