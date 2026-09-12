@@ -1,0 +1,19 @@
+{
+  "name": "pr-tracker-server",
+  "version": "1.0.0",
+  "description": "Backend API for GitHub PR Tracker",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@octokit/graphql": "^8.2.1",
+    "axios": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

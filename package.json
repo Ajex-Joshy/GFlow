@@ -1,0 +1,11 @@
+{
+  "name": "pr-tracker",
+  "version": "1.0.0",
+  "description": "Full-Stack GitHub PR Tracker with 3 tabs and unresolved comment counters",
+  "scripts": {
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "build:client": "npm run build --prefix client",
+    "start": "node server/src/server.js"
+  }
+}
