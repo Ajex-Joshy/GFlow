@@ -16,19 +16,17 @@ export default function App() {
   const [oauthConfigured, setOauthConfigured] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  // PR Data State
-  const [activeTab, setActiveTab] = useState('reviewer'); // 'reviewer' | 'raised' | 'approved' | 'org'
+  // 3 Core Tabs State: 'reviewer' | 'raised' | 'approved'
+  const [activeTab, setActiveTab] = useState('reviewer');
   const [prData, setPrData] = useState({
     reviewer: [],
     raised: [],
     approved: [],
-    org: [],
   });
   const [counts, setCounts] = useState({
     reviewer: 0,
     raised: 0,
     approved: 0,
-    org: 0,
     totalUnresolvedRaisedComments: 0,
   });
   const [isLoadingPRs, setIsLoadingPRs] = useState(false);
@@ -88,8 +86,8 @@ export default function App() {
 
     try {
       const result = await api.getPRSummary();
-      setPrData(result.data || { reviewer: [], raised: [], approved: [], org: [] });
-      setCounts(result.counts || { reviewer: 0, raised: 0, approved: 0, org: 0, totalUnresolvedRaisedComments: 0 });
+      setPrData(result.data || { reviewer: [], raised: [], approved: [] });
+      setCounts(result.counts || { reviewer: 0, raised: 0, approved: 0, totalUnresolvedRaisedComments: 0 });
       if (result.organizations) {
         setOrganizations(result.organizations);
       }
@@ -145,8 +143,8 @@ export default function App() {
       setOrganizations([]);
       setSelectedOrg('all');
       setIsAuthenticated(false);
-      setPrData({ reviewer: [], raised: [], approved: [], org: [] });
-      setCounts({ reviewer: 0, raised: 0, approved: 0, org: 0, totalUnresolvedRaisedComments: 0 });
+      setPrData({ reviewer: [], raised: [], approved: [] });
+      setCounts({ reviewer: 0, raised: 0, approved: 0, totalUnresolvedRaisedComments: 0 });
     }
   };
 
@@ -263,7 +261,7 @@ export default function App() {
             </div>
           )}
 
-          {/* UnderlineNav Tabs: Reviewer, Raised, Approved, Organization PRs */}
+          {/* UnderlineNav 3 Tabs: Reviewer, Raised, Approved */}
           <Tabs
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -312,7 +310,6 @@ export default function App() {
                   key={pr.id || `${pr.repository?.nameWithOwner}-${pr.number}`}
                   pr={pr}
                   tabType={activeTab}
-                  userLogin={user?.login}
                 />
               ))}
             </div>

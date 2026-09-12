@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, GitPullRequest, CheckCircle2, Building2 } from 'lucide-react';
+import { Eye, GitPullRequest, CheckCircle2 } from 'lucide-react';
 
 export default function Tabs({ activeTab, onTabChange, counts = {} }) {
   const tabs = [
@@ -21,12 +21,6 @@ export default function Tabs({ activeTab, onTabChange, counts = {} }) {
       label: 'PR I approve',
       icon: CheckCircle2,
       count: counts.approved || 0,
-    },
-    {
-      id: 'org',
-      label: 'Organization PRs',
-      icon: Building2,
-      count: counts.org || 0,
     },
   ];
 
