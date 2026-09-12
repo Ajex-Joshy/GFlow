@@ -119,6 +119,20 @@ const formatPRNode = (pr, extra = {}) => {
       avatarUrl: r.requestedReviewer?.avatarUrl || null,
     })),
     checkState: pr.commits?.nodes?.[0]?.commit?.statusCheckRollup?.state || null,
+    reviewRequestedAt: (() => {
+      const timelineEvents = pr.timelineItems?.nodes || [];
+      if (extra.currentUserLogin) {
+        const match = [...timelineEvents].reverse().find((evt) => {
+          const login = evt.requestedReviewer?.login;
+          return login?.toLowerCase() === extra.currentUserLogin?.toLowerCase();
+        });
+        if (match?.createdAt) return match.createdAt;
+      }
+      if (timelineEvents.length > 0) {
+        return timelineEvents[timelineEvents.length - 1]?.createdAt || pr.createdAt;
+      }
+      return pr.createdAt;
+    })(),
     ...extra,
   };
 };
@@ -188,6 +202,17 @@ const PR_FIELDS = `
       }
     }
   }
+  timelineItems(last: 10, itemTypes: [REVIEW_REQUESTED_EVENT]) {
+    nodes {
+      ... on ReviewRequestedEvent {
+        createdAt
+        requestedReviewer {
+          ... on User { login }
+          ... on Team { name }
+        }
+      }
+    }
+  }
 `;
 
 /**
@@ -211,7 +236,9 @@ export const getReviewerPRs = async (token, username) => {
     }
   `, { queryString });
 
-  return (data.search?.nodes || []).map((node) => formatPRNode(node));
+  return (data.search?.nodes || []).map((node) =>
+    formatPRNode(node, { currentUserLogin: username })
+  );
 };
 
 /**

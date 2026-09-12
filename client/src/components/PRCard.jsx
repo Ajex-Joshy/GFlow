@@ -8,7 +8,11 @@ import {
   X,
   Clock,
 } from 'lucide-react';
-import { formatPRTimestamp, formatRelativeOnly } from '../utils/dateFormatter';
+import {
+  formatPRTimestamp,
+  formatRelativeOnly,
+  formatReviewWaitTimer,
+} from '../utils/dateFormatter';
 
 export default function PRCard({
   pr,
@@ -16,13 +20,16 @@ export default function PRCard({
   showLabels = true,
   showDetailedTimestamp = true,
   showCIStatus = true,
+  showReviewWaitTimer = true,
   isSelected = false,
   cardRef = null,
 }) {
   const isRaisedTab = tabType === 'raised';
+  const isReviewerTab = tabType === 'reviewer';
   const isMerged = pr.state === 'MERGED' || Boolean(pr.mergedAt);
   const hasUnresolvedComments = (pr.unresolvedCommentsCount || 0) > 0;
   const createdFormatted = formatPRTimestamp(pr.createdAt);
+  const reviewWaitTimerFormatted = formatReviewWaitTimer(pr.reviewRequestedAt || pr.createdAt);
 
   return (
     <div className={`pr-row ${isSelected ? 'is-selected' : ''}`} ref={cardRef}>
@@ -89,6 +96,20 @@ export default function PRCard({
           </a>
 
           <span>•</span>
+
+          {/* Review Wait Timer: format "HH : MM" from time review was requested */}
+          {isReviewerTab && showReviewWaitTimer && (
+            <>
+              <span
+                className="review-wait-pill"
+                title={`Waiting for your review • Requested: ${formatRelativeOnly(pr.reviewRequestedAt || pr.createdAt)}`}
+              >
+                <Clock size={11} className="review-wait-clock-icon" />
+                <span>Waiting: <strong>{reviewWaitTimerFormatted}</strong></span>
+              </span>
+              <span>•</span>
+            </>
+          )}
 
           {/* Timestamp: Detailed "Created: 2d 1h 52m ago (10 Sep, 4:58 PM)" or compact "opened 2d ago" */}
           <span className="timestamp-text">

@@ -1167,4 +1167,33 @@ kbd.gh-kbd {
   gap: 0.3rem;
 }
 
+/* ==========================================================================
+   Review Wait Timer (Stopwatch pill in HH : MM format)
+   ========================================================================== */
+.review-wait-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
+  background-color: rgba(210, 153, 34, 0.15);
+  color: var(--color-attention-fg);
+  border: 1px solid rgba(210, 153, 34, 0.35);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.review-wait-pill strong {
+  font-weight: 600;
+  color: var(--color-attention-fg);
+  letter-spacing: 0.03em;
+}
+
+.review-wait-clock-icon {
+  color: var(--color-attention-fg);
+  flex-shrink: 0;
+}
+
 

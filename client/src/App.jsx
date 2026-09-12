@@ -595,6 +595,7 @@ export default function App() {
                   showLabels={settings.showLabels !== false}
                   showDetailedTimestamp={settings.showDetailedTimestamp !== false}
                   showCIStatus={settings.showCIStatus !== false}
+                  showReviewWaitTimer={settings.showReviewWaitTimer !== false}
                 />
               ))}
             </div>

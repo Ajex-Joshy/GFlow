@@ -70,3 +70,28 @@ export function formatRelativeOnly(isoString) {
   if (totalMinutes > 0) return `${totalMinutes}m ago`;
   return 'just now';
 }
+
+/**
+ * Format elapsed duration since review was requested into "HH : MM" format
+ * e.g. "04 : 32" (4 hours, 32 minutes), "26 : 15" (26 hours, 15 minutes)
+ * 
+ * @param {string} isoString - The ISO date when review was requested
+ * @returns {string} Formatted "HH : MM" elapsed time
+ */
+export function formatReviewWaitTimer(isoString) {
+  if (!isoString) return '00 : 00';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '00 : 00';
+
+  const now = new Date();
+  const diffMs = Math.max(0, now - date);
+
+  const totalMinutes = Math.floor(diffMs / 60000);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  const hh = String(totalHours).padStart(2, '0');
+  const mm = String(minutes).padStart(2, '0');
+
+  return `${hh} : ${mm}`;
+}

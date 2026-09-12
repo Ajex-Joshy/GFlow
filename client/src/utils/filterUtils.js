@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS = {
   showLabels: true,
   showDetailedTimestamp: true,
   showCIStatus: true,
+  showReviewWaitTimer: true,
 };
 
 /**
