@@ -42,7 +42,23 @@ app.use((err, req, res, next) => {
   });
 });
 
+// In production, serve the built Vite client from client/dist
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.join(__dirname, '../../client/dist');
+  app.use(express.static(clientDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
 app.listen(PORT, () => {
-  console.log(`PR Tracker API Server running on http://localhost:${PORT}`);
+  console.log(`GFlow API Server running on http://localhost:${PORT}`);
   console.log(`Accepting client requests from ${CLIENT_URL}`);
 });

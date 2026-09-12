@@ -1,11 +1,21 @@
 {
-  "name": "pr-tracker",
+  "name": "gflow",
   "version": "1.0.0",
-  "description": "Full-Stack GitHub PR Tracker with 3 tabs and unresolved comment counters",
+  "description": "GFlow - High-velocity pull request tracker & review board for GitHub",
   "scripts": {
     "server": "npm run dev --prefix server",
     "client": "npm run dev --prefix client",
     "build:client": "npm run build --prefix client",
     "start": "node server/src/server.js"
-  }
+  },
+  "keywords": [
+    "github",
+    "pull-requests",
+    "code-review",
+    "developer-tools",
+    "triage",
+    "primer"
+  ],
+  "author": "Ajex Joshy",
+  "license": "MIT"
 }

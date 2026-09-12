@@ -1,7 +1,7 @@
 {
-  "name": "pr-tracker-server",
+  "name": "gflow-server",
   "version": "1.0.0",
-  "description": "Backend API for GitHub PR Tracker",
+  "description": "Backend API for GFlow",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
