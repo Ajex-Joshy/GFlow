@@ -262,7 +262,7 @@ export default function SettingsModal({
 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h3 className="settings-heading">CI / GitHub Actions Status Badges</h3>
+                    <h3 className="settings-heading">CI / Status Checks</h3>
                     <label className="gh-toggle-label">
                       <input
                         type="checkbox"
@@ -273,7 +273,7 @@ export default function SettingsModal({
                     </label>
                   </div>
                   <p className="settings-desc">
-                    Show real-time commit check status (passed, failing, pending) directly on PR cards.
+                    Show real-time commit check status icons directly on PR cards, matching GitHub.
                   </p>
                 </div>
               </div>

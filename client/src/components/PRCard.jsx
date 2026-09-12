@@ -122,26 +122,34 @@ export default function PRCard({
             </>
           )}
 
-          {/* CI / GitHub Actions Status Badge */}
+          {/* CI / GitHub Actions Status Check (Native GitHub Style - icon only with tooltip) */}
           {showCIStatus && pr.checkState && (
             <>
               <span>•</span>
-              {pr.checkState === 'SUCCESS' ? (
-                <span className="ci-status-badge success" title="All CI checks have passed">
-                  <Check size={11} strokeWidth={2.5} />
-                  <span>passed</span>
-                </span>
-              ) : pr.checkState === 'FAILURE' || pr.checkState === 'ERROR' ? (
-                <span className="ci-status-badge failure" title="CI checks have failed">
-                  <X size={11} strokeWidth={2.5} />
-                  <span>failing</span>
-                </span>
-              ) : (
-                <span className="ci-status-badge pending" title="CI checks are pending or in progress">
-                  <Clock size={11} />
-                  <span>pending</span>
-                </span>
-              )}
+              <span
+                className={`commit-build-status ${
+                  pr.checkState === 'SUCCESS'
+                    ? 'success'
+                    : pr.checkState === 'FAILURE' || pr.checkState === 'ERROR'
+                    ? 'failure'
+                    : 'pending'
+                }`}
+                title={
+                  pr.checkState === 'SUCCESS'
+                    ? 'All checks have passed'
+                    : pr.checkState === 'FAILURE' || pr.checkState === 'ERROR'
+                    ? 'Some checks were not successful'
+                    : 'Some checks haven’t completed yet'
+                }
+              >
+                {pr.checkState === 'SUCCESS' ? (
+                  <Check size={14} strokeWidth={2.5} />
+                ) : pr.checkState === 'FAILURE' || pr.checkState === 'ERROR' ? (
+                  <X size={14} strokeWidth={2.5} />
+                ) : (
+                  <Clock size={13} strokeWidth={2} />
+                )}
+              </span>
             </>
           )}
         </div>
