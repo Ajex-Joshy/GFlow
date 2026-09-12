@@ -14,6 +14,7 @@ export const DEFAULT_SETTINGS = {
   showCIStatus: true,
   showReviewWaitTimer: true,
   showReviewerStatus: true,
+  showDiffStats: true,
 };
 
 /**

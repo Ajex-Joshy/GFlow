@@ -597,6 +597,7 @@ export default function App() {
                   showCIStatus={settings.showCIStatus !== false}
                   showReviewWaitTimer={settings.showReviewWaitTimer !== false}
                   showReviewerStatus={settings.showReviewerStatus !== false}
+                  showDiffStats={settings.showDiffStats !== false}
                 />
               ))}
             </div>

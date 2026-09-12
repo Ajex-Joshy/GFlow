@@ -87,6 +87,16 @@ export default function SettingsModal({
     triggerSavedToast();
   };
 
+  const handleToggleDiffStats = () => {
+    const updated = {
+      ...currentSettings,
+      showDiffStats: currentSettings.showDiffStats === false ? true : false,
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+    triggerSavedToast();
+  };
+
   const handleChangeDefaultOrg = (orgValue) => {
     const updated = {
       ...currentSettings,
@@ -328,6 +338,23 @@ export default function SettingsModal({
                   </div>
                   <p className="settings-desc">
                     Show each requested reviewer&apos;s decision (approved, changes requested, or awaiting review) on pull requests you have raised.
+                  </p>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 className="settings-heading">Diff Stats (Files & Lines Changed)</h3>
+                    <label className="gh-toggle-label">
+                      <input
+                        type="checkbox"
+                        checked={currentSettings.showDiffStats !== false}
+                        onChange={handleToggleDiffStats}
+                      />
+                      <span className="gh-toggle-slider" />
+                    </label>
+                  </div>
+                  <p className="settings-desc">
+                    Display changed file count alongside additions and deletions (e.g. <code>12 files</code> • <code>+1,947 -26</code>) directly on PR cards.
                   </p>
                 </div>
               </div>

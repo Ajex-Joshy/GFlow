@@ -7,6 +7,7 @@ import {
   Check,
   X,
   Clock,
+  FileCode2,
 } from 'lucide-react';
 import {
   formatPRTimestamp,
@@ -41,6 +42,7 @@ export default function PRCard({
   showCIStatus = true,
   showReviewWaitTimer = true,
   showReviewerStatus = true,
+  showDiffStats = true,
   isSelected = false,
   cardRef = null,
 }) {
@@ -253,11 +255,24 @@ export default function PRCard({
           </span>
         )}
 
-        {/* Additions / Deletions Diff */}
-        {(pr.additions > 0 || pr.deletions > 0) && (
-          <div className="diff-stat" title={`+${pr.additions} / -${pr.deletions}`}>
-            <span className="diff-stat-add">+{pr.additions}</span>
-            <span className="diff-stat-del">-{pr.deletions}</span>
+        {/* Combined Files & Lines Diff Stats */}
+        {showDiffStats && (pr.changedFiles > 0 || pr.additions > 0 || pr.deletions > 0) && (
+          <div
+            className="diff-stat-combined"
+            title={`${pr.changedFiles || 0} file${pr.changedFiles === 1 ? '' : 's'} changed (+${(pr.additions || 0).toLocaleString()} / -${(pr.deletions || 0).toLocaleString()})`}
+          >
+            {pr.changedFiles > 0 && (
+              <span className="diff-files-pill">
+                <FileCode2 size={11} className="diff-files-icon" />
+                <span>{pr.changedFiles} {pr.changedFiles === 1 ? 'file' : 'files'}</span>
+              </span>
+            )}
+            {(pr.additions > 0 || pr.deletions > 0) && (
+              <span className="diff-lines-pill">
+                <span className="diff-stat-add">+{pr.additions.toLocaleString()}</span>
+                <span className="diff-stat-del">-{pr.deletions.toLocaleString()}</span>
+              </span>
+            )}
           </div>
         )}
       </div>
