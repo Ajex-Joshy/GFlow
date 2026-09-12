@@ -1168,32 +1168,44 @@ kbd.gh-kbd {
 }
 
 /* ==========================================================================
-   Review Wait Timer (Stopwatch pill in HH : MM format)
+   Right-Aligned SLA Wait Timer Chip (Minimalist GitHub Style)
    ========================================================================== */
-.review-wait-pill {
+.sla-timer-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
   font-size: 11px;
   font-family: var(--font-mono);
-  padding: 0.1rem 0.45rem;
-  border-radius: var(--radius-full);
-  background-color: rgba(210, 153, 34, 0.15);
-  color: var(--color-attention-fg);
-  border: 1px solid rgba(210, 153, 34, 0.35);
-  line-height: 16px;
+  line-height: 18px;
+  color: var(--color-fg-muted);
+  background-color: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
   white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
 }
 
-.review-wait-pill strong {
-  font-weight: 600;
-  color: var(--color-attention-fg);
-  letter-spacing: 0.03em;
+.sla-timer-chip:hover {
+  color: var(--color-fg-default);
+  border-color: var(--color-border-muted);
+  background-color: var(--color-btn-hover-bg);
 }
 
-.review-wait-clock-icon {
-  color: var(--color-attention-fg);
+.sla-timer-icon {
+  color: var(--color-fg-muted);
   flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.sla-timer-chip:hover .sla-timer-icon {
+  color: var(--color-accent-fg);
+}
+
+.sla-timer-time {
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
 

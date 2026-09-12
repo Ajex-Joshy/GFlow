@@ -97,20 +97,6 @@ export default function PRCard({
 
           <span>•</span>
 
-          {/* Review Wait Timer: format "HH : MM" from time review was requested */}
-          {isReviewerTab && showReviewWaitTimer && (
-            <>
-              <span
-                className="review-wait-pill"
-                title={`Waiting for your review • Requested: ${formatRelativeOnly(pr.reviewRequestedAt || pr.createdAt)}`}
-              >
-                <Clock size={11} className="review-wait-clock-icon" />
-                <span>Waiting: <strong>{reviewWaitTimerFormatted}</strong></span>
-              </span>
-              <span>•</span>
-            </>
-          )}
-
           {/* Timestamp: Detailed "Created: 2d 1h 52m ago (10 Sep, 4:58 PM)" or compact "opened 2d ago" */}
           <span className="timestamp-text">
             {showDetailedTimestamp ? (
@@ -176,8 +162,19 @@ export default function PRCard({
         </div>
       </div>
 
-      {/* Right Side: Unresolved Comments & Diff stats */}
+      {/* Right Side: SLA Wait Timer, Unresolved Comments & Diff stats */}
       <div className="pr-row-right">
+        {/* Right-aligned SLA Wait Timer (Reviewer Queue) */}
+        {isReviewerTab && showReviewWaitTimer && (
+          <div
+            className="sla-timer-chip"
+            title={`Review requested ${formatRelativeOnly(pr.reviewRequestedAt || pr.createdAt)} • Elapsed wait time: ${reviewWaitTimerFormatted}`}
+          >
+            <Clock size={12} className="sla-timer-icon" />
+            <span className="sla-timer-time">{reviewWaitTimerFormatted}</span>
+          </div>
+        )}
+
         {/* Unresolved Comments Badge (Specifically for open PRs I raised) */}
         {isRaisedTab && !isMerged && (
           <div>
