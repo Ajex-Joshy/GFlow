@@ -17,7 +17,9 @@ const createClient = (token) => {
  */
 export const getUserProfile = async (token) => {
   const client = createClient(token);
-  const data = await client(`
+  
+  // 1. Fetch user viewer info
+  const viewerData = await client(`
     query {
       viewer {
         login
@@ -25,19 +27,36 @@ export const getUserProfile = async (token) => {
         avatarUrl
         url
         bio
-        organizations(first: 50) {
-          nodes {
-            id
-            login
-            name
-            avatarUrl
-            url
-          }
-        }
       }
     }
   `);
-  return data.viewer;
+
+  const viewer = viewerData.viewer;
+
+  // 2. Fetch organizations (requires read:org scope)
+  try {
+    const orgsData = await client(`
+      query {
+        viewer {
+          organizations(first: 50) {
+            nodes {
+              id
+              login
+              name
+              avatarUrl
+              url
+            }
+          }
+        }
+      }
+    `);
+    viewer.organizations = orgsData.viewer?.organizations || { nodes: [] };
+  } catch (err) {
+    console.warn('Organizations query warning (read:org scope may be needed):', err.message);
+    viewer.organizations = { nodes: [] };
+  }
+
+  return viewer;
 };
 
 /**

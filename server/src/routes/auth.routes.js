@@ -27,7 +27,7 @@ router.get('/github', (req, res) => {
   }
 
   const redirectUri = process.env.GITHUB_CALLBACK_URL || 'http://localhost:5000/api/auth/callback';
-  const scope = 'repo read:user user:email';
+  const scope = 'repo read:user user:email read:org';
   const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
     redirectUri
   )}&scope=${encodeURIComponent(scope)}`;
