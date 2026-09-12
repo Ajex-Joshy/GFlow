@@ -153,8 +153,8 @@ export default function PRCard({
 
           {/* CI / GitHub Actions Status Check (Native GitHub Style - icon only with tooltip) */}
           {showCIStatus && pr.checkState && (
-            <>
-              <span>•</span>
+            <span className="meta-ci-wrapper">
+              <span className="meta-bullet">•</span>
               <span
                 className={`commit-build-status ${
                   pr.checkState === 'SUCCESS'
@@ -179,7 +179,7 @@ export default function PRCard({
                   <Clock size={13} strokeWidth={2} />
                 )}
               </span>
-            </>
+            </span>
           )}
         </div>
       </div>
@@ -198,7 +198,7 @@ export default function PRCard({
                 {rev.avatarUrl && (
                   <img src={rev.avatarUrl} alt={rev.login} className="reviewer-chip-avatar" />
                 )}
-                <span className="reviewer-chip-name">@{rev.login}</span>
+                <span className="reviewer-chip-name">{rev.login}</span>
                 {rev.state === 'APPROVED' ? (
                   <Check size={11} strokeWidth={2.8} className="reviewer-status-icon approved" />
                 ) : rev.state === 'CHANGES_REQUESTED' ? (
@@ -224,9 +224,9 @@ export default function PRCard({
           </div>
         )}
 
-        {/* Unresolved Comments Badge (Specifically for open PRs I raised) */}
+        {/* Unresolved Comments Badge (Only shown if PR has unresolved threads or threads that were resolved) */}
         {isRaisedTab && !isMerged && (
-          <div>
+          <>
             {hasUnresolvedComments ? (
               <span
                 className="unresolved-badge"
@@ -235,13 +235,13 @@ export default function PRCard({
                 <MessageSquare size={12} />
                 <span>{pr.unresolvedCommentsCount} unresolved</span>
               </span>
-            ) : (
+            ) : pr.totalCommentsCount > 0 ? (
               <span className="resolved-badge" title="All review threads resolved">
                 <Check size={12} />
                 <span>Resolved</span>
               </span>
-            )}
-          </div>
+            ) : null}
+          </>
         )}
 
         {/* Total Comments if not showing unresolved */}
@@ -266,6 +266,9 @@ export default function PRCard({
                 <FileCode2 size={11} className="diff-files-icon" />
                 <span>{pr.changedFiles} {pr.changedFiles === 1 ? 'file' : 'files'}</span>
               </span>
+            )}
+            {pr.changedFiles > 0 && (pr.additions > 0 || pr.deletions > 0) && (
+              <span className="diff-stat-dot">•</span>
             )}
             {(pr.additions > 0 || pr.deletions > 0) && (
               <span className="diff-lines-pill">

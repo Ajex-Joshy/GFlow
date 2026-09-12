@@ -441,10 +441,10 @@ export default function App() {
             <div className="dashboard-controls">
               {/* Organization Filter Dropdown */}
               {organizations.length > 0 && (
-                <div className="org-filter-wrapper">
-                  <Building2 size={15} style={{ color: 'var(--color-fg-muted)' }} />
+                <div className="org-filter-box">
+                  <Building2 size={14} className="org-icon" />
                   <select
-                    className="gh-input org-select"
+                    className="org-select"
                     value={selectedOrg}
                     onChange={(e) => setSelectedOrg(e.target.value)}
                     title="Filter by Organization"
