@@ -26,13 +26,6 @@ export default function App() {
     raisedMerged: [],
     approved: [],
   });
-  const [counts, setCounts] = useState({
-    reviewer: 0,
-    raised: 0,
-    raisedMerged: 0,
-    approved: 0,
-    totalUnresolvedRaisedComments: 0,
-  });
   const [isLoadingPRs, setIsLoadingPRs] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [fetchError, setFetchError] = useState('');
@@ -91,15 +84,6 @@ export default function App() {
     try {
       const result = await api.getPRSummary();
       setPrData(result.data || { reviewer: [], raised: [], raisedMerged: [], approved: [] });
-      setCounts(
-        result.counts || {
-          reviewer: 0,
-          raised: 0,
-          raisedMerged: 0,
-          approved: 0,
-          totalUnresolvedRaisedComments: 0,
-        }
-      );
       if (result.organizations) {
         setOrganizations(result.organizations);
       }
@@ -156,46 +140,67 @@ export default function App() {
       setSelectedOrg('all');
       setIsAuthenticated(false);
       setPrData({ reviewer: [], raised: [], raisedMerged: [], approved: [] });
-      setCounts({
-        reviewer: 0,
-        raised: 0,
-        raisedMerged: 0,
-        approved: 0,
-        totalUnresolvedRaisedComments: 0,
-      });
     }
   };
 
-  // Filter PRs by organization, state filter, and search query
+  // Compute organization-filtered datasets and dynamic counts
+  const filteredData = useMemo(() => {
+    const filterByOrg = (list = []) => {
+      if (selectedOrg === 'all') return list;
+      return list.filter((pr) => {
+        const owner = pr.repository?.owner;
+        if (selectedOrg === 'personal') {
+          return owner?.toLowerCase() === user?.login?.toLowerCase();
+        }
+        return owner?.toLowerCase() === selectedOrg?.toLowerCase();
+      });
+    };
+
+    const reviewer = filterByOrg(prData.reviewer);
+    const raised = filterByOrg(prData.raised);
+    const raisedMerged = filterByOrg(prData.raisedMerged);
+    const approved = filterByOrg(prData.approved);
+
+    const totalUnresolvedRaisedComments = raised.reduce(
+      (sum, pr) => sum + (pr.unresolvedCommentsCount || 0),
+      0
+    );
+
+    return {
+      reviewer,
+      raised,
+      raisedMerged,
+      approved,
+      counts: {
+        reviewer: reviewer.length,
+        raised: raised.length,
+        raisedMerged: raisedMerged.length,
+        approved: approved.length,
+        totalUnresolvedRaisedComments,
+      },
+    };
+  }, [prData, selectedOrg, user?.login]);
+
+  // Filter active list by search query
   const currentPRs = useMemo(() => {
     let list = [];
     if (activeTab === 'raised') {
-      list = raisedStateFilter === 'merged' ? prData.raisedMerged || [] : prData.raised || [];
+      list = raisedStateFilter === 'merged' ? filteredData.raisedMerged : filteredData.raised;
     } else {
-      list = prData[activeTab] || [];
+      list = filteredData[activeTab] || [];
     }
 
-    // Filter by Organization
-    const orgFiltered = list.filter((pr) => {
-      if (selectedOrg === 'all') return true;
-      const owner = pr.repository?.owner;
-      if (selectedOrg === 'personal') {
-        return owner === user?.login;
-      }
-      return owner === selectedOrg;
-    });
-
-    if (!searchQuery.trim()) return orgFiltered;
+    if (!searchQuery.trim()) return list;
 
     const q = searchQuery.toLowerCase().trim();
-    return orgFiltered.filter((pr) => {
+    return list.filter((pr) => {
       const matchTitle = pr.title?.toLowerCase().includes(q);
       const matchRepo = pr.repository?.nameWithOwner?.toLowerCase().includes(q);
       const matchAuthor = pr.author?.login?.toLowerCase().includes(q);
       const matchNumber = pr.number?.toString().includes(q);
       return matchTitle || matchRepo || matchAuthor || matchNumber;
     });
-  }, [prData, activeTab, raisedStateFilter, selectedOrg, searchQuery, user?.login]);
+  }, [filteredData, activeTab, raisedStateFilter, searchQuery]);
 
   // If initial auth check is loading
   if (authLoading) {
@@ -284,7 +289,7 @@ export default function App() {
             </div>
           )}
 
-          {/* UnderlineNav 3 Tabs: Reviewer, Raised, Approved */}
+          {/* UnderlineNav 3 Tabs: Reviewer, Raised, Approved (dynamically reflects selected organization) */}
           <Tabs
             activeTab={activeTab}
             onTabChange={(tab) => {
@@ -292,7 +297,7 @@ export default function App() {
               // Reset raisedStateFilter to 'open' when navigating
               if (tab === 'raised') setRaisedStateFilter('open');
             }}
-            counts={counts}
+            counts={filteredData.counts}
           />
         </div>
 
@@ -300,7 +305,7 @@ export default function App() {
         <div className="gh-box">
           <div className="gh-box-header">
             {activeTab === 'raised' ? (
-              /* GitHub-Style Open / Merged State Switcher */
+              /* GitHub-Style Open / Merged State Switcher with dynamic org-specific counts */
               <div className="gh-state-filters">
                 <button
                   type="button"
@@ -308,7 +313,7 @@ export default function App() {
                   onClick={() => setRaisedStateFilter('open')}
                 >
                   <GitPullRequest size={14} style={{ color: raisedStateFilter === 'open' ? 'var(--color-open-fg)' : 'inherit' }} />
-                  <span>{counts.raised || 0} Open</span>
+                  <span>{filteredData.counts.raised} Open</span>
                 </button>
 
                 <button
@@ -317,7 +322,7 @@ export default function App() {
                   onClick={() => setRaisedStateFilter('merged')}
                 >
                   <GitMerge size={14} style={{ color: raisedStateFilter === 'merged' ? 'var(--color-merged-fg)' : 'inherit' }} />
-                  <span>{counts.raisedMerged || 0} Merged</span>
+                  <span>{filteredData.counts.raisedMerged} Merged</span>
                 </button>
               </div>
             ) : (
@@ -331,9 +336,9 @@ export default function App() {
               </div>
             )}
 
-            {activeTab === 'raised' && raisedStateFilter === 'open' && counts.totalUnresolvedRaisedComments > 0 && (
+            {activeTab === 'raised' && raisedStateFilter === 'open' && filteredData.counts.totalUnresolvedRaisedComments > 0 && (
               <span style={{ color: 'var(--color-attention-fg)', fontSize: '12px', fontWeight: 500 }}>
-                {counts.totalUnresolvedRaisedComments} unresolved comments across open PRs
+                {filteredData.counts.totalUnresolvedRaisedComments} unresolved comments across open PRs
               </span>
             )}
           </div>
