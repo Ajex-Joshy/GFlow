@@ -43,7 +43,6 @@ export default function PRCard({
   showReviewWaitTimer = true,
   showReviewerStatus = true,
   showDiffStats = true,
-  showResolvedBadge = true,
   isSelected = false,
   cardRef = null,
 }) {
@@ -225,24 +224,15 @@ export default function PRCard({
           </div>
         )}
 
-        {/* Unresolved Comments Badge */}
-        {isRaisedTab && !isMerged && (
-          <>
-            {hasUnresolvedComments ? (
-              <span
-                className="unresolved-badge"
-                title={`${pr.unresolvedCommentsCount} unresolved review thread${pr.unresolvedCommentsCount > 1 ? 's' : ''}`}
-              >
-                <MessageSquare size={12} />
-                <span>{pr.unresolvedCommentsCount} unresolved</span>
-              </span>
-            ) : (showResolvedBadge && pr.totalCommentsCount > 0) ? (
-              <span className="resolved-badge" title="All review threads resolved">
-                <Check size={12} />
-                <span>Resolved</span>
-              </span>
-            ) : null}
-          </>
+        {/* Flag unresolved comments only */}
+        {isRaisedTab && !isMerged && hasUnresolvedComments && (
+          <span
+            className="unresolved-badge"
+            title={`${pr.unresolvedCommentsCount} unresolved review thread${pr.unresolvedCommentsCount > 1 ? 's' : ''}`}
+          >
+            <MessageSquare size={12} />
+            <span>{pr.unresolvedCommentsCount} unresolved</span>
+          </span>
         )}
 
         {/* Total Comments if not showing unresolved */}

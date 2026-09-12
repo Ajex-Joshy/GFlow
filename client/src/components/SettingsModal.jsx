@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building2, Bot, Ban, Plus, Trash2, Check, Tag, CheckCircle2, Clock } from 'lucide-react';
+import { X, Building2, Bot, Ban, Plus, Trash2, Check, Tag } from 'lucide-react';
 
 export default function SettingsModal({
   isOpen,
@@ -91,16 +91,6 @@ export default function SettingsModal({
     const updated = {
       ...currentSettings,
       showDiffStats: currentSettings.showDiffStats === false ? true : false,
-    };
-    setCurrentSettings(updated);
-    onSaveSettings(updated);
-    triggerSavedToast();
-  };
-
-  const handleToggleResolvedBadge = () => {
-    const updated = {
-      ...currentSettings,
-      showResolvedBadge: currentSettings.showResolvedBadge === false ? true : false,
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -368,22 +358,6 @@ export default function SettingsModal({
                   </p>
                 </div>
 
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h3 className="settings-heading">Resolved Comments Badge</h3>
-                    <label className="gh-toggle-label">
-                      <input
-                        type="checkbox"
-                        checked={currentSettings.showResolvedBadge !== false}
-                        onChange={handleToggleResolvedBadge}
-                      />
-                      <span className="gh-toggle-slider" />
-                    </label>
-                  </div>
-                  <p className="settings-desc">
-                    Show a green <code>✓ Resolved</code> badge on PRs where all comment threads have been addressed. Unresolved threads (<code>💬 X unresolved</code>) will always be highlighted.
-                  </p>
-                </div>
               </div>
             </div>
           </section>
