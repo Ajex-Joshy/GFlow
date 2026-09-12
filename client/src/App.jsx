@@ -10,10 +10,21 @@ import SettingsModal from './components/SettingsModal';
 import ShortcutsModal from './components/ShortcutsModal';
 import { loadSettings, saveSettings, isBotPR } from './utils/filterUtils';
 import { formatRelativeOnly } from './utils/dateFormatter';
+import {
+  getCachedUser,
+  setCachedUser,
+  getCachedPRSummary,
+  setCachedPRSummary,
+  clearClientCache,
+} from './utils/cacheUtils';
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [organizations, setOrganizations] = useState([]);
+  // Synchronous initial cache read for instant 0ms startup (Stale-While-Revalidate)
+  const cachedUserEntry = useMemo(() => getCachedUser(), []);
+  const cachedPREntry = useMemo(() => getCachedPRSummary(), []);
+
+  const [user, setUser] = useState(() => cachedUserEntry?.user || null);
+  const [organizations, setOrganizations] = useState(() => cachedUserEntry?.organizations || []);
   const [settings, setSettings] = useState(loadSettings);
   const [selectedOrg, setSelectedOrg] = useState(() => {
     const s = loadSettings();
@@ -27,8 +38,8 @@ export default function App() {
   const [selectedRepo, setSelectedRepo] = useState('all');
   const [sortOrder, setSortOrder] = useState('recently-updated');
   const [onlyUnresolved, setOnlyUnresolved] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(cachedUserEntry?.user));
+  const [authLoading, setAuthLoading] = useState(() => !Boolean(cachedUserEntry?.user));
   const [oauthConfigured, setOauthConfigured] = useState(false);
   const [authError, setAuthError] = useState('');
 
@@ -36,16 +47,22 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('reviewer');
   const [raisedStateFilter, setRaisedStateFilter] = useState('open'); // 'open' | 'merged'
 
-  const [prData, setPrData] = useState({
-    reviewer: [],
-    raised: [],
-    raisedMerged: [],
-    approved: [],
+  const [prData, setPrData] = useState(() => {
+    return (
+      cachedPREntry?.data || {
+        reviewer: [],
+        raised: [],
+        raisedMerged: [],
+        approved: [],
+      }
+    );
   });
-  const [isLoadingPRs, setIsLoadingPRs] = useState(false);
+  // Track if we already have data loaded to eliminate skeleton shimmer on revisit/refresh
+  const hasLoadedOnceRef = useRef(Boolean(cachedPREntry?.data));
+  const [isLoadingPRs, setIsLoadingPRs] = useState(() => !Boolean(cachedPREntry?.data));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [fetchError, setFetchError] = useState('');
-  const [staleNotice, setStaleNotice] = useState(null);
+  const [staleNotice, setStaleNotice] = useState(() => cachedPREntry?.staleNotice || null);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Ticker to force re-render every minute so timestamps like "1m ago" advance in real-time
@@ -78,8 +95,10 @@ export default function App() {
         const authData = await api.getCurrentUser();
         if (authData?.user) {
           setUser(authData.user);
-          setOrganizations(authData.user.organizations?.nodes || []);
+          const orgs = authData.user.organizations?.nodes || [];
+          setOrganizations(orgs);
           setIsAuthenticated(true);
+          setCachedUser(authData.user, orgs);
         }
       } catch (err) {
         if (err.status === 429 || err.message?.toLowerCase().includes('rate limit')) {
@@ -88,6 +107,7 @@ export default function App() {
         } else {
           setIsAuthenticated(false);
           setUser(null);
+          clearClientCache();
         }
       } finally {
         setAuthLoading(false);
@@ -97,34 +117,46 @@ export default function App() {
     checkAuth();
   }, []);
 
-  // 2. Fetch PRs function
+  // 2. Fetch PRs function (Stale-While-Revalidate)
   const loadPRData = useCallback(async (isSilent = false) => {
-    if (!isSilent) setIsLoadingPRs(true);
+    // Only display full skeleton loader if this is the first load with no existing/cached PRs
+    if (!isSilent && !hasLoadedOnceRef.current) {
+      setIsLoadingPRs(true);
+    }
     setIsRefreshing(true);
     setFetchError('');
 
     try {
       const result = await api.getPRSummary();
-      setPrData(result.data || { reviewer: [], raised: [], raisedMerged: [], approved: [] });
-      if (result.organizations) {
-        setOrganizations(result.organizations);
+      const freshData = result.data || { reviewer: [], raised: [], raisedMerged: [], approved: [] };
+      setPrData(freshData);
+      hasLoadedOnceRef.current = true;
+
+      const orgs = result.organizations || [];
+      if (orgs.length > 0) {
+        setOrganizations(orgs);
       }
+
+      let notice = null;
       if (result.isStale || result.rateLimited) {
-        setStaleNotice({
+        notice = {
           isStale: true,
           fetchedAt: result.fetchedAt,
           staleReason: result.staleReason || 'GitHub API hourly rate limit exceeded.',
-        });
-      } else {
-        setStaleNotice(null);
+        };
       }
+      setStaleNotice(notice);
+
+      // Persist to local cache so next startup is instantaneous
+      setCachedPRSummary(freshData, orgs, notice);
     } catch (err) {
       console.error('Failed to load PRs:', err);
       if (err.status === 401) {
         setIsAuthenticated(false);
         setUser(null);
+        clearClientCache();
       } else if (err.status === 429 || err.message?.toLowerCase().includes('rate limit')) {
-        setFetchError('GitHub API hourly rate limit reached. Data will refresh when the window resets.');
+        setFetchError('GitHub API hourly rate limit reached. Cached data remains accessible.');
       } else {
         setFetchError(err.message || 'Failed to fetch Pull Requests.');
       }
@@ -137,7 +169,7 @@ export default function App() {
   // Load PRs whenever authentication is confirmed
   useEffect(() => {
     if (isAuthenticated) {
-      loadPRData();
+      loadPRData(hasLoadedOnceRef.current);
     }
   }, [isAuthenticated, loadPRData]);
 
@@ -155,8 +187,10 @@ export default function App() {
     const res = await api.loginWithPAT(token);
     if (res.user) {
       setUser(res.user);
-      setOrganizations(res.user.organizations?.nodes || []);
+      const orgs = res.user.organizations?.nodes || [];
+      setOrganizations(orgs);
       setIsAuthenticated(true);
+      setCachedUser(res.user, orgs);
       setAuthError('');
     }
   };
@@ -168,10 +202,12 @@ export default function App() {
     } catch (e) {
       console.error('Logout error:', e);
     } finally {
+      clearClientCache();
       setUser(null);
       setOrganizations([]);
       setSelectedOrg(settings.defaultOrg || 'all');
       setIsAuthenticated(false);
+      hasLoadedOnceRef.current = false;
       setPrData({ reviewer: [], raised: [], raisedMerged: [], approved: [] });
     }
   };
@@ -448,7 +484,7 @@ export default function App() {
       // 'r' or 'R' to refresh data
       if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
-        loadPRData(false);
+        loadPRData(true);
         return;
       }
 
@@ -549,7 +585,7 @@ export default function App() {
     <div className="app-container">
       <Navbar
         user={user}
-        onRefresh={() => loadPRData(false)}
+        onRefresh={() => loadPRData(true)}
         isRefreshing={isRefreshing}
         onLogout={handleLogout}
         onOpenSettings={() => setIsSettingsOpen(true)}
