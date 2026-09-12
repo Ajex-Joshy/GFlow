@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { formatPRTimestamp, formatRelativeOnly } from '../utils/dateFormatter';
 
-export default function PRCard({ pr, tabType }) {
+export default function PRCard({ pr, tabType, showLabels = true }) {
   const isRaisedTab = tabType === 'raised';
   const isMerged = pr.state === 'MERGED' || Boolean(pr.mergedAt);
   const hasUnresolvedComments = (pr.unresolvedCommentsCount || 0) > 0;
@@ -45,6 +45,25 @@ export default function PRCard({ pr, tabType }) {
           ) : pr.isDraft ? (
             <span className="gh-label gh-label-draft">Draft</span>
           ) : null}
+
+          {/* GitHub Labels */}
+          {showLabels && pr.labels?.map((label) => {
+            const rawColor = label.color?.startsWith('#') ? label.color : `#${label.color || '6e7681'}`;
+            return (
+              <span
+                key={label.name}
+                className="gh-custom-label"
+                style={{
+                  backgroundColor: `${rawColor}20`,
+                  color: rawColor,
+                  borderColor: `${rawColor}50`,
+                }}
+                title={`Label: ${label.name}`}
+              >
+                {label.name}
+              </span>
+            );
+          })}
         </div>
 
         {/* Secondary Meta Row: org/repo, Exact timestamp, Opened by */}

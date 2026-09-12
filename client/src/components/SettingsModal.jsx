@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building2, Bot, Ban, Plus, Trash2, Check } from 'lucide-react';
+import { X, Building2, Bot, Ban, Plus, Trash2, Check, Tag, CheckCircle2 } from 'lucide-react';
 
 export default function SettingsModal({
   isOpen,
@@ -21,6 +21,26 @@ export default function SettingsModal({
     const updated = {
       ...currentSettings,
       ignoreBots: !currentSettings.ignoreBots,
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+    triggerSavedToast();
+  };
+
+  const handleToggleApprovedTab = () => {
+    const updated = {
+      ...currentSettings,
+      showApprovedTab: currentSettings.showApprovedTab === false ? true : false,
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+    triggerSavedToast();
+  };
+
+  const handleToggleLabels = () => {
+    const updated = {
+      ...currentSettings,
+      showLabels: currentSettings.showLabels === false ? true : false,
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -162,7 +182,51 @@ export default function SettingsModal({
             </div>
           </section>
 
-          {/* Section 3: Excluded Repositories */}
+          {/* Section 3: Display & Tab Preferences */}
+          <section className="settings-section">
+            <div className="settings-section-header">
+              <div className="settings-section-icon">
+                <Tag size={16} />
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 className="settings-heading">Show &quot;PR I approve&quot; Tab</h3>
+                    <label className="gh-toggle-label">
+                      <input
+                        type="checkbox"
+                        checked={currentSettings.showApprovedTab !== false}
+                        onChange={handleToggleApprovedTab}
+                      />
+                      <span className="gh-toggle-slider" />
+                    </label>
+                  </div>
+                  <p className="settings-desc">
+                    Toggle visibility of the approved pull requests tab if you want to focus strictly on actionable items (reviews needed and raised PRs).
+                  </p>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 className="settings-heading">Show Labels on PR Cards</h3>
+                    <label className="gh-toggle-label">
+                      <input
+                        type="checkbox"
+                        checked={currentSettings.showLabels !== false}
+                        onChange={handleToggleLabels}
+                      />
+                      <span className="gh-toggle-slider" />
+                    </label>
+                  </div>
+                  <p className="settings-desc">
+                    Display repository labels (e.g. bug, enhancement, high-priority) directly next to PR titles.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 4: Excluded Repositories */}
           <section className="settings-section">
             <div className="settings-section-header">
               <div className="settings-section-icon">

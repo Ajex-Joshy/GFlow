@@ -154,6 +154,9 @@ export default function App() {
   const handleSaveSettings = (newSettings) => {
     setSettings(newSettings);
     saveSettings(newSettings);
+    if (newSettings.showApprovedTab === false && activeTab === 'approved') {
+      setActiveTab('reviewer');
+    }
   };
 
   // Extract all unique repositories available in loaded PRs
@@ -355,6 +358,7 @@ export default function App() {
               if (tab === 'raised') setRaisedStateFilter('open');
             }}
             counts={filteredData.counts}
+            showApprovedTab={settings.showApprovedTab !== false}
           />
         </div>
 
@@ -441,6 +445,7 @@ export default function App() {
                   key={pr.id || `${pr.repository?.nameWithOwner}-${pr.number}`}
                   pr={pr}
                   tabType={activeTab}
+                  showLabels={settings.showLabels !== false}
                 />
               ))}
             </div>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Eye, GitPullRequest, CheckCircle2 } from 'lucide-react';
 
-export default function Tabs({ activeTab, onTabChange, counts = {} }) {
-  const tabs = [
+export default function Tabs({ activeTab, onTabChange, counts = {}, showApprovedTab = true }) {
+  const allTabs = [
     {
       id: 'reviewer',
       label: 'PR where I am reviewer',
@@ -23,6 +23,8 @@ export default function Tabs({ activeTab, onTabChange, counts = {} }) {
       count: counts.approved || 0,
     },
   ];
+
+  const tabs = showApprovedTab ? allTabs : allTabs.filter((t) => t.id !== 'approved');
 
   return (
     <nav className="underlinenav-container" aria-label="Pull Request Navigation">

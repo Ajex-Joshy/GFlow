@@ -8,6 +8,8 @@ export const DEFAULT_SETTINGS = {
   ignoreBots: true,
   excludedRepos: [],
   defaultOrg: 'all',
+  showApprovedTab: true,
+  showLabels: true,
 };
 
 /**

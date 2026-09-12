@@ -528,6 +528,24 @@ input {
   border-color: var(--color-draft-border);
 }
 
+.gh-label-merged {
+  background-color: var(--color-merged-muted);
+  color: var(--color-merged-fg);
+  border-color: rgba(163, 113, 247, 0.3);
+}
+
+.gh-custom-label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0 6px;
+  line-height: 18px;
+  border-radius: 2em;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
 /* Secondary Meta Line */
 .pr-row-meta-line {
   display: flex;
