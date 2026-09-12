@@ -1,16 +1,16 @@
 import React from 'react';
-import { Inbox, CheckCircle2 } from 'lucide-react';
+import { GitPullRequest, Check } from 'lucide-react';
 
 export default function EmptyState({ tabType, searchQuery }) {
   if (searchQuery) {
     return (
-      <div className="empty-state">
-        <div className="empty-state-icon">
-          <Inbox size={26} />
+      <div className="gh-blankslate">
+        <div className="gh-blankslate-icon">
+          <GitPullRequest size={32} />
         </div>
-        <h3 className="empty-state-title">No matching Pull Requests</h3>
-        <p className="empty-state-desc">
-          No pull requests found matching &quot;{searchQuery}&quot;. Try adjusting your search query.
+        <h3 className="gh-blankslate-heading">No results matched your search</h3>
+        <p className="gh-blankslate-text">
+          Could not find any pull requests matching &quot;{searchQuery}&quot;. Try searching for another repository or title.
         </p>
       </div>
     );
@@ -18,31 +18,31 @@ export default function EmptyState({ tabType, searchQuery }) {
 
   const tabMessages = {
     reviewer: {
-      title: 'Inbox Zero! No PRs awaiting your review',
-      desc: 'You have no pending review requests at the moment. Great job keeping the review queue clean!',
+      title: 'There aren’t any pull requests waiting on your review.',
+      desc: 'When someone requests your review on a pull request, it will appear here.',
     },
     raised: {
-      title: 'No open PRs raised by you',
-      desc: 'You do not have any active pull requests authored right now. Create a new branch and open a PR on GitHub.',
+      title: 'There aren’t any open pull requests created by you.',
+      desc: 'Pull requests you open across any repository will be tracked here.',
     },
     approved: {
-      title: 'No approved PRs found',
-      desc: 'Pull requests that you review and approve will appear here for easy tracking.',
+      title: 'There aren’t any pull requests you have approved.',
+      desc: 'Pull requests that you have reviewed and approved will show up here.',
     },
   };
 
   const info = tabMessages[tabType] || {
-    title: 'No Pull Requests found',
-    desc: 'There are no pull requests to display in this view.',
+    title: 'No pull requests found',
+    desc: 'There are no pull requests to display.',
   };
 
   return (
-    <div className="empty-state">
-      <div className="empty-state-icon">
-        <CheckCircle2 size={26} style={{ color: 'var(--status-open)' }} />
+    <div className="gh-blankslate">
+      <div className="gh-blankslate-icon">
+        <Check size={32} style={{ color: 'var(--color-open-fg)' }} />
       </div>
-      <h3 className="empty-state-title">{info.title}</h3>
-      <p className="empty-state-desc">{info.desc}</p>
+      <h3 className="gh-blankslate-heading">{info.title}</h3>
+      <p className="gh-blankslate-text">{info.desc}</p>
     </div>
   );
 }

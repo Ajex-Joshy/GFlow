@@ -1,71 +1,76 @@
 /* ==========================================================================
-   OctoPulse PR Tracker - Core Design System & Styles
+   GitHub Primer Design System & Styles (Dark Mode)
+   Matches GitHub's native Pull Requests UI/UX
    ========================================================================== */
 
 :root {
-  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
-  /* Color Palette - Cyber Dark & Glassmorphic */
-  --bg-primary: #0A0D14;
-  --bg-secondary: #0F1420;
-  --bg-card: rgba(19, 25, 39, 0.75);
-  --bg-card-hover: rgba(27, 35, 54, 0.85);
-  --bg-glass: rgba(255, 255, 255, 0.03);
-  --bg-glass-active: rgba(255, 255, 255, 0.08);
+  /* GitHub Dark Theme Color Tokens */
+  --color-canvas-default: #0d1117;
+  --color-canvas-subtle: #161b22;
+  --color-canvas-inset: #010409;
+  --color-canvas-overlay: #161b22;
 
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-active: rgba(99, 102, 241, 0.4);
-  --border-glow: rgba(99, 102, 241, 0.2);
+  --color-border-default: #30363d;
+  --color-border-muted: #21262d;
+  --color-border-subtle: rgba(240, 246, 252, 0.1);
 
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --text-inverse: #0A0D14;
+  --color-fg-default: #e6edf3;
+  --color-fg-muted: #848d97;
+  --color-fg-subtle: #6e7681;
+  --color-fg-on-emphasis: #ffffff;
 
-  /* Brand Accents */
-  --accent-primary: #6366F1;
-  --accent-primary-hover: #4F46E5;
-  --accent-primary-glow: rgba(99, 102, 241, 0.25);
+  /* GitHub Accent (Blue Links & Highlights) */
+  --color-accent-fg: #4493f8;
+  --color-accent-emphasis: #1f6feb;
+  --color-accent-muted: rgba(56, 139, 253, 0.15);
+  --color-accent-subtle: rgba(56, 139, 253, 0.1);
 
-  --accent-cyan: #06B6D4;
-  --accent-cyan-glow: rgba(6, 182, 212, 0.25);
+  /* GitHub Success / Open PR (Green) */
+  --color-open-fg: #3fb950;
+  --color-open-emphasis: #238636;
+  --color-open-hover: #2ea043;
+  --color-open-muted: rgba(46, 160, 67, 0.15);
+  --color-open-border: rgba(63, 185, 80, 0.3);
 
-  /* Status Colors */
-  --status-open: #10B981;
-  --status-open-bg: rgba(16, 185, 129, 0.12);
-  --status-open-border: rgba(16, 185, 129, 0.25);
+  /* GitHub Draft PR (Gray) */
+  --color-draft-fg: #848d97;
+  --color-draft-emphasis: #6e7681;
+  --color-draft-muted: rgba(110, 118, 129, 0.15);
+  --color-draft-border: rgba(110, 118, 129, 0.3);
 
-  --status-draft: #64748B;
-  --status-draft-bg: rgba(100, 116, 139, 0.12);
-  --status-draft-border: rgba(100, 116, 139, 0.25);
+  /* GitHub Merged PR (Purple) */
+  --color-merged-fg: #a371f7;
+  --color-merged-emphasis: #8957e5;
+  --color-merged-muted: rgba(163, 113, 247, 0.15);
 
-  --status-merged: #A855F7;
-  --status-merged-bg: rgba(168, 85, 247, 0.12);
-  --status-merged-border: rgba(168, 85, 247, 0.25);
+  /* GitHub Attention / Warning (Amber) */
+  --color-attention-fg: #d29922;
+  --color-attention-emphasis: #9e6a03;
+  --color-attention-muted: rgba(187, 128, 9, 0.15);
+  --color-attention-border: rgba(210, 153, 34, 0.35);
 
-  /* Unresolved comments alert colors */
-  --unresolved-color: #F59E0B;
-  --unresolved-bg: rgba(245, 158, 11, 0.14);
-  --unresolved-border: rgba(245, 158, 11, 0.35);
-  --unresolved-glow: rgba(245, 158, 11, 0.2);
+  /* GitHub Danger / Red */
+  --color-danger-fg: #f85149;
+  --color-danger-muted: rgba(248, 81, 73, 0.15);
+  --color-danger-border: rgba(248, 81, 73, 0.35);
 
-  --resolved-color: #10B981;
-  --resolved-bg: rgba(16, 185, 129, 0.12);
-  --resolved-border: rgba(16, 185, 129, 0.3);
+  /* Buttons */
+  --color-btn-bg: #21262d;
+  --color-btn-border: #30363d;
+  --color-btn-hover-bg: #30363d;
+  --color-btn-hover-border: #8b949e;
 
-  /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 25px rgba(99, 102, 241, 0.15);
+  --color-btn-primary-bg: #238636;
+  --color-btn-primary-hover-bg: #2ea043;
+  --color-btn-primary-border: rgba(240, 246, 252, 0.1);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
   --radius-full: 9999px;
-
-  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Reset & Base */
@@ -77,21 +82,21 @@
 
 body {
   font-family: var(--font-main);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  min-height: 100vh;
+  background-color: var(--color-canvas-default);
+  color: var(--color-fg-default);
+  font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
-  background-attachment: fixed;
-  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 a {
-  color: inherit;
+  color: var(--color-accent-fg);
   text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 button {
@@ -103,6 +108,7 @@ button {
 
 input {
   font-family: inherit;
+  font-size: 14px;
 }
 
 /* Scrollbar */
@@ -111,14 +117,14 @@ input {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: var(--color-canvas-default);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: #30363d;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: #484f58;
 }
 
 /* ==========================================================================
@@ -132,86 +138,73 @@ input {
 
 .main-content {
   flex: 1;
-  max-width: 1240px;
+  max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 1.5rem 1rem 3rem;
 }
 
 /* ==========================================================================
-   Header / Navbar
+   GitHub Navbar Header
    ========================================================================== */
 .navbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(10, 13, 20, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 0.85rem 1.5rem;
+  background-color: var(--color-canvas-inset);
+  border-bottom: 1px solid var(--color-border-default);
+  padding: 0.75rem 1rem;
 }
 
 .navbar-inner {
-  max-width: 1240px;
+  max-width: 1280px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-weight: 800;
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #FFFFFF 30%, #94A3B8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  gap: 0.65rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-fg-default);
 }
 
 .brand-icon {
-  width: 34px;
-  height: 34px;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
-  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: 0 0 16px var(--accent-primary-glow);
+  color: var(--color-fg-default);
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.refresh-btn {
+.gh-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.9rem;
-  background: var(--bg-glass);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 12px;
   font-weight: 500;
-  transition: all var(--transition-fast);
+  line-height: 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-btn-border);
+  background-color: var(--color-btn-bg);
+  color: var(--color-fg-default);
+  transition: 0.15s cubic-bezier(0.3, 0, 0.5, 1);
 }
 
-.refresh-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-glass-active);
-  border-color: var(--border-active);
+.gh-btn:hover {
+  background-color: var(--color-btn-hover-bg);
+  border-color: var(--color-btn-hover-border);
 }
 
-.refresh-btn.spinning svg {
+.gh-btn.spinning svg {
   animation: spin 1s linear infinite;
 }
 
@@ -223,69 +216,138 @@ input {
 .user-profile-badge {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.35rem 0.75rem 0.35rem 0.45rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
+  gap: 0.45rem;
+  color: var(--color-fg-default);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s;
+}
+
+.user-profile-badge:hover {
+  background-color: var(--color-canvas-subtle);
+  text-decoration: none;
 }
 
 .user-avatar {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  border: 1px solid var(--border-active);
+  border: 1px solid var(--color-border-default);
 }
 
 .user-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  color: var(--color-fg-default);
 }
 
 .logout-btn {
   display: flex;
   align-items: center;
-  padding: 0.5rem;
+  padding: 0.35rem;
+  color: var(--color-fg-muted);
   border-radius: var(--radius-md);
-  color: var(--text-muted);
-  transition: all var(--transition-fast);
+  transition: color 0.15s;
 }
 
 .logout-btn:hover {
-  color: #EF4444;
-  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger-fg);
 }
 
 /* ==========================================================================
-   Dashboard Hero & Controls
+   Dashboard Page Header & UnderlineNav Tabs (GitHub Style)
    ========================================================================== */
 .dashboard-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .dashboard-title-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .page-title {
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-fg-default);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.page-subtitle {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  margin-top: 0.25rem;
+/* GitHub UnderlineNav (Tabs) */
+.underlinenav-container {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-default);
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  gap: 0.5rem;
 }
 
+.underlinenav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-fg-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s;
+  white-space: nowrap;
+  background: transparent;
+}
+
+.underlinenav-item:hover {
+  color: var(--color-fg-default);
+}
+
+.underlinenav-item.active {
+  color: var(--color-fg-default);
+  font-weight: 600;
+  border-bottom-color: #f78166; /* GitHub standard coral tab indicator */
+}
+
+/* GitHub Counter Badge */
+.gh-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-border-default);
+  color: var(--color-fg-default);
+}
+
+.underlinenav-item.active .gh-counter {
+  background-color: #388bfd26;
+  color: var(--color-fg-default);
+}
+
+.unresolved-counter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-attention-muted);
+  color: var(--color-attention-fg);
+  border: 1px solid var(--color-attention-border);
+}
+
+/* Search Bar (GitHub filter style) */
 .search-filter-box {
   position: relative;
   width: 320px;
@@ -294,588 +356,415 @@ input {
 
 .search-input {
   width: 100%;
-  padding: 0.65rem 1rem 0.65rem 2.5rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
+  padding: 0.35rem 0.75rem 0.35rem 2rem;
+  background-color: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: 0.875rem;
+  color: var(--color-fg-default);
   outline: none;
-  transition: all var(--transition-fast);
+  font-size: 13px;
+  line-height: 20px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .search-input:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-primary-glow);
+  border-color: var(--color-accent-emphasis);
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.3);
 }
 
 .search-icon {
   position: absolute;
-  left: 0.85rem;
+  left: 0.65rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--color-fg-muted);
   pointer-events: none;
 }
 
 /* ==========================================================================
-   Tabs Component
+   GitHub Box Container & Row Layout (PR List)
    ========================================================================== */
-.tabs-container {
-  display: flex;
-  gap: 0.5rem;
-  background: var(--bg-secondary);
-  padding: 0.35rem;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  margin-bottom: 1.75rem;
-  overflow-x: auto;
-}
-
-.tab-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.75rem 1.25rem;
+.gh-box {
+  background-color: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all var(--transition-normal);
-  white-space: nowrap;
-  position: relative;
-}
-
-.tab-btn:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.tab-btn.active {
-  background: var(--accent-primary);
-  color: #FFFFFF;
-  box-shadow: 0 4px 14px var(--accent-primary-glow);
-}
-
-.tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.15rem 0.55rem;
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.1);
-  color: inherit;
-}
-
-.tab-btn.active .tab-badge {
-  background: rgba(255, 255, 255, 0.25);
-  color: white;
-}
-
-.tab-alert-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.7rem;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  border-radius: var(--radius-full);
-  background: rgba(245, 158, 11, 0.2);
-  color: #FCD34D;
-  border: 1px solid rgba(245, 158, 11, 0.4);
-}
-
-.tab-btn.active .tab-alert-pill {
-  background: #FFFBEB;
-  color: #B45309;
-}
-
-/* ==========================================================================
-   PR Card
-   ========================================================================== */
-.pr-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.pr-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
-  transition: all var(--transition-normal);
-  position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
 }
 
-.pr-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 3px;
-  background: transparent;
-  transition: all var(--transition-fast);
-}
-
-.pr-card:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-active);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow), var(--shadow-md);
-}
-
-.pr-card:hover::before {
-  background: var(--accent-primary);
-}
-
-.pr-card-header {
+.gh-box-header {
+  padding: 0.75rem 1rem;
+  background-color: var(--color-canvas-subtle);
+  border-bottom: 1px solid var(--color-border-default);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.65rem;
-  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--color-fg-muted);
 }
 
-.repo-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--accent-cyan);
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
+.gh-box-header-title {
   font-weight: 600;
-  padding: 0.25rem 0.65rem;
-  background: rgba(6, 182, 212, 0.08);
-  border: 1px solid rgba(6, 182, 212, 0.25);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
+  color: var(--color-fg-default);
 }
 
-.repo-pill:hover {
-  background: rgba(6, 182, 212, 0.16);
-  border-color: rgba(6, 182, 212, 0.4);
-}
-
-.pr-badges-row {
+/* PR Row Item (Matches GitHub github.com/pulls list item) */
+.pr-row {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border-muted);
+  gap: 0.75rem;
+  transition: background-color 0.1s;
 }
 
-/* Creation Timestamp */
-.timestamp-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.81rem;
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
-  font-family: var(--font-mono);
+.pr-row:last-child {
+  border-bottom: none;
 }
 
-.timestamp-pill strong {
-  color: var(--text-primary);
+.pr-row:hover {
+  background-color: rgba(22, 27, 34, 0.6);
 }
 
-.timestamp-exact {
-  color: var(--text-muted);
+.pr-status-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
 }
 
-/* PR Title & Link */
-.pr-title-row {
-  margin-bottom: 0.85rem;
+.pr-status-icon.open {
+  color: var(--color-open-fg);
 }
 
-.pr-title {
-  font-size: 1.12rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.4;
-  display: inline-flex;
+.pr-status-icon.draft {
+  color: var(--color-draft-fg);
+}
+
+.pr-status-icon.merged {
+  color: var(--color-merged-fg);
+}
+
+.pr-row-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.pr-row-title-line {
+  display: flex;
   align-items: baseline;
-  gap: 0.5rem;
-  transition: color var(--transition-fast);
-}
-
-.pr-title:hover {
-  color: var(--accent-cyan);
-}
-
-.pr-number {
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: 0.95rem;
-}
-
-/* Unresolved comments banner/pill */
-.unresolved-alert-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.35rem 0.8rem;
-  background: var(--unresolved-bg);
-  border: 1px solid var(--unresolved-border);
-  color: #FCD34D;
-  border-radius: var(--radius-full);
-  font-size: 0.8rem;
-  font-weight: 700;
-  box-shadow: 0 0 12px var(--unresolved-glow);
-  animation: pulse-border 2.5s infinite;
-}
-
-.resolved-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.35rem 0.8rem;
-  background: var(--resolved-bg);
-  border: 1px solid var(--resolved-border);
-  color: var(--resolved-color);
-  border-radius: var(--radius-full);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-@keyframes pulse-border {
-  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-}
-
-/* PR Card Footer */
-.pr-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 0.75rem;
-  margin-top: 0.5rem;
   flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
 }
 
-.author-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-}
-
-.author-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-}
-
-.author-link {
-  color: var(--text-primary);
+.pr-title-link {
+  color: var(--color-fg-default);
+  font-size: 15px;
   font-weight: 600;
+  line-height: 1.35;
 }
 
-.author-link:hover {
+.pr-title-link:hover {
+  color: var(--color-accent-fg);
   text-decoration: underline;
 }
 
-.pr-meta-stats {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  font-size: 0.78rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
+.pr-number-label {
+  color: var(--color-fg-muted);
+  font-size: 13px;
+  font-weight: 400;
 }
 
-.diff-stats {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.diff-add {
-  color: #10B981;
-}
-
-.diff-del {
-  color: #EF4444;
-}
-
-/* Status Badges */
-.badge-open {
-  background: var(--status-open-bg);
-  border: 1px solid var(--status-open-border);
-  color: var(--status-open);
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 700;
+.gh-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0 7px;
+  line-height: 18px;
+  border-radius: 2em;
+  border: 1px solid transparent;
 }
 
-.badge-draft {
-  background: var(--status-draft-bg);
-  border: 1px solid var(--status-draft-border);
-  color: var(--status-draft);
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 700;
+.gh-label-draft {
+  background-color: var(--color-draft-muted);
+  color: var(--color-draft-fg);
+  border-color: var(--color-draft-border);
 }
 
-/* ==========================================================================
-   Login / Hero Screen
-   ========================================================================== */
-.login-wrapper {
-  min-height: calc(100vh - 120px);
+/* Secondary Meta Line */
+.pr-row-meta-line {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
-}
-
-.login-card {
-  width: 100%;
-  max-width: 480px;
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 2.5rem 2rem;
-  box-shadow: var(--shadow-md), var(--shadow-glow);
-  text-align: center;
-}
-
-.login-icon-badge {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 1.5rem;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 0 24px var(--accent-primary-glow);
-}
-
-.login-title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.5rem;
-}
-
-.login-desc {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 12px;
+  color: var(--color-fg-muted);
   line-height: 1.5;
 }
 
-.oauth-btn {
-  width: 100%;
+.repo-link {
+  font-weight: 600;
+  color: var(--color-fg-muted);
+}
+
+.repo-link:hover {
+  color: var(--color-accent-fg);
+}
+
+/* Timestamp in user format: Created: 1d 18h 1m ago (10 Sep, 11:37 PM) */
+.timestamp-text {
+  color: var(--color-fg-muted);
+}
+
+.timestamp-text strong {
+  color: var(--color-fg-default);
+  font-weight: 500;
+}
+
+.author-link {
+  color: var(--color-fg-muted);
+}
+
+.author-link:hover {
+  color: var(--color-accent-fg);
+}
+
+/* Right side badges & indicators */
+.pr-row-right {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.75rem;
-  padding: 0.85rem 1.25rem;
-  background: #24292F;
-  color: white;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Unresolved comments pill - GitHub style */
+.unresolved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 11px;
   font-weight: 600;
-  font-size: 0.95rem;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: all var(--transition-fast);
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-attention-muted);
+  color: var(--color-attention-fg);
+  border: 1px solid var(--color-attention-border);
 }
 
-.oauth-btn:hover {
-  background: #1B1F23;
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
+.resolved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-open-muted);
+  color: var(--color-open-fg);
+  border: 1px solid var(--color-open-border);
 }
 
-.divider {
+.diff-stat {
+  font-size: 12px;
+  font-family: var(--font-mono);
   display: flex;
   align-items: center;
-  text-align: center;
-  margin: 1.75rem 0;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  gap: 0.25rem;
 }
 
-.divider::before, .divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid var(--border-subtle);
+.diff-stat-add {
+  color: var(--color-open-fg);
 }
 
-.divider:not(:empty)::before {
-  margin-right: 1rem;
+.diff-stat-del {
+  color: var(--color-danger-fg);
 }
 
-.divider:not(:empty)::after {
-  margin-left: 1rem;
-}
-
-.pat-form {
+/* ==========================================================================
+   GitHub-Style Sign-In View
+   ========================================================================== */
+.login-wrapper {
+  min-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  text-align: left;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
 }
 
-.input-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+.github-logo-header {
+  color: var(--color-fg-default);
+  margin-bottom: 1.5rem;
 }
 
-.pat-input {
+.login-heading {
+  font-size: 24px;
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  margin-bottom: 1.25rem;
+  color: var(--color-fg-default);
+}
+
+.login-box {
   width: 100%;
-  padding: 0.75rem 1rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
+  max-width: 340px;
+  background-color: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  outline: none;
-  transition: all var(--transition-fast);
+  padding: 1.25rem;
 }
 
-.pat-input:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-primary-glow);
-}
-
-.submit-pat-btn {
+.gh-primary-btn {
   width: 100%;
-  padding: 0.85rem;
-  background: var(--accent-primary);
-  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 14px;
   font-weight: 600;
-  font-size: 0.95rem;
+  line-height: 20px;
+  color: #ffffff;
+  background-color: var(--color-btn-primary-bg);
+  border: 1px solid var(--color-btn-primary-border);
   border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  transition: background-color 0.15s;
 }
 
-.submit-pat-btn:hover:not(:disabled) {
-  background: var(--accent-primary-hover);
-  box-shadow: 0 4px 14px var(--accent-primary-glow);
+.gh-primary-btn:hover:not(:disabled) {
+  background-color: var(--color-btn-primary-hover-bg);
 }
 
-.submit-pat-btn:disabled {
+.gh-primary-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.pat-hint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  margin-top: 0.25rem;
-}
-
-.pat-hint a {
-  color: var(--accent-cyan);
-  text-decoration: underline;
-}
-
-/* ==========================================================================
-   Empty State & Skeletons
-   ========================================================================== */
-.empty-state {
-  text-align: center;
-  padding: 4.5rem 1.5rem;
-  background: var(--bg-card);
-  border: 1px dashed var(--border-subtle);
-  border-radius: var(--radius-lg);
-}
-
-.empty-state-icon {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 1.25rem;
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 50%;
+.login-divider {
   display: flex;
   align-items: center;
-  justify-content: center;
+  text-align: center;
+  margin: 1.25rem 0;
+  color: var(--color-fg-muted);
+  font-size: 12px;
 }
 
-.empty-state-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
+.login-divider::before, .login-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--color-border-default);
 }
 
-.empty-state-desc {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  max-width: 380px;
+.login-divider:not(:empty)::before {
+  margin-right: 0.75rem;
+}
+
+.login-divider:not(:empty)::after {
+  margin-left: 0.75rem;
+}
+
+.gh-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.gh-label-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-fg-default);
+}
+
+.gh-input {
+  width: 100%;
+  padding: 0.35rem 0.75rem;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-fg-default);
+  background-color: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.gh-input:focus {
+  border-color: var(--color-accent-emphasis);
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.3);
+}
+
+.login-help-box {
+  width: 100%;
+  max-width: 340px;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--color-fg-muted);
+  text-align: center;
+  background-color: var(--color-canvas-default);
+}
+
+.login-help-box a {
+  color: var(--color-accent-fg);
+}
+
+/* Alert Banner */
+.error-banner {
+  background-color: var(--color-danger-muted);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger-fg);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  font-size: 13px;
+}
+
+/* Blankslate (Empty State) */
+.gh-blankslate {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.gh-blankslate-icon {
+  color: var(--color-fg-muted);
+  margin-bottom: 0.75rem;
+}
+
+.gh-blankslate-heading {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-fg-default);
+  margin-bottom: 0.25rem;
+}
+
+.gh-blankslate-text {
+  font-size: 13px;
+  color: var(--color-fg-muted);
+  max-width: 420px;
   margin: 0 auto;
 }
 
 /* Skeleton Loading */
-.skeleton-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
+.gh-skeleton-row {
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border-muted);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
-.skeleton-line {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+.gh-skeleton-line {
+  background: linear-gradient(90deg, #161b22 25%, #21262d 50%, #161b22 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s infinite;
-  border-radius: var(--radius-sm);
+  border-radius: 4px;
 }
 
 @keyframes skeleton-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
-}
-
-/* Alert Banner */
-.error-banner {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #FCA5A5;
-  padding: 0.85rem 1.25rem;
-  border-radius: var(--radius-md);
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.9rem;
 }

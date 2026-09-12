@@ -1,15 +1,11 @@
 import React from 'react';
 import {
-  ExternalLink,
-  GitBranch,
-  Clock,
-  MessageSquareWarning,
-  CheckCircle2,
-  FileCode,
-  GitPullRequestDraft,
   GitPullRequest,
+  GitPullRequestDraft,
+  MessageSquare,
+  Check,
 } from 'lucide-react';
-import { formatPRTimestamp, formatRelativeOnly } from '../utils/dateFormatter';
+import { formatPRTimestamp } from '../utils/dateFormatter';
 
 export default function PRCard({ pr, tabType }) {
   const isRaisedTab = tabType === 'raised';
@@ -17,119 +13,109 @@ export default function PRCard({ pr, tabType }) {
   const createdFormatted = formatPRTimestamp(pr.createdAt);
 
   return (
-    <article className="pr-card">
-      {/* Header: Repository & Status Badges */}
-      <div className="pr-card-header">
-        <a
-          href={pr.repository?.url || `https://github.com/${pr.repository?.nameWithOwner}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="repo-pill"
-          title="Open repository on GitHub"
-        >
-          <GitBranch size={13} />
-          <span>{pr.repository?.nameWithOwner || 'repository'}</span>
-        </a>
-
-        <div className="pr-badges-row">
-          {/* Creation Timestamp formatted exactly: Created: 1d 18h 1m ago (10 Sep, 11:37 PM) */}
-          <div className="timestamp-pill" title={`Created on ${new Date(pr.createdAt).toLocaleString()}`}>
-            <Clock size={13} style={{ color: 'var(--text-muted)' }} />
-            <span>{createdFormatted}</span>
-          </div>
-
-          {/* Draft or Open Badge */}
-          {pr.isDraft ? (
-            <span className="badge-draft">
-              <GitPullRequestDraft size={12} />
-              Draft
-            </span>
-          ) : (
-            <span className="badge-open">
-              <GitPullRequest size={12} />
-              Open
-            </span>
-          )}
-        </div>
+    <div className="pr-row">
+      {/* GitHub PR Status Icon (Green for open, gray for draft) */}
+      <div className={`pr-status-icon ${pr.isDraft ? 'draft' : 'open'}`}>
+        {pr.isDraft ? (
+          <GitPullRequestDraft size={18} />
+        ) : (
+          <GitPullRequest size={18} />
+        )}
       </div>
 
-      {/* Main PR Title & Link */}
-      <div className="pr-title-row">
-        <a
-          href={pr.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="pr-title"
-        >
-          <span>{pr.title}</span>
-          <span className="pr-number">#{pr.number}</span>
-          <ExternalLink size={14} style={{ opacity: 0.6, flexShrink: 0 }} />
-        </a>
-      </div>
-
-      {/* Unresolved Comments Pill (Specifically for PR I raised) */}
-      {isRaisedTab && (
-        <div style={{ marginBottom: '0.85rem' }}>
-          {hasUnresolvedComments ? (
-            <div className="unresolved-alert-pill">
-              <MessageSquareWarning size={14} />
-              <span>
-                {pr.unresolvedCommentsCount} Unresolved Comment{pr.unresolvedCommentsCount > 1 ? 's' : ''}
-              </span>
-            </div>
-          ) : (
-            <div className="resolved-pill">
-              <CheckCircle2 size={14} />
-              <span>All Comments Resolved</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Card Footer: Author info, diff stats, labels */}
-      <footer className="pr-card-footer">
-        <div className="author-info">
-          <img
-            src={pr.author?.avatarUrl}
-            alt={pr.author?.login}
-            className="author-avatar"
-          />
-          <span>Opened by</span>
+      {/* Main PR Content */}
+      <div className="pr-row-content">
+        <div className="pr-row-title-line">
           <a
-            href={pr.author?.url || `https://github.com/${pr.author?.login}`}
+            href={pr.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="author-link"
+            className="pr-title-link"
           >
-            @{pr.author?.login}
+            {pr.title}
+          </a>
+          <span className="pr-number-label">#{pr.number}</span>
+
+          {pr.isDraft && (
+            <span className="gh-label gh-label-draft">Draft</span>
+          )}
+        </div>
+
+        {/* Secondary Meta Row: Repo, Exact timestamp, Opened by */}
+        <div className="pr-row-meta-line">
+          <a
+            href={pr.repository?.url || `https://github.com/${pr.repository?.nameWithOwner}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="repo-link"
+          >
+            {pr.repository?.nameWithOwner || 'repository'}
           </a>
 
-          {tabType === 'approved' && pr.approvedAt && (
-            <span style={{ color: 'var(--status-open)', marginLeft: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-              <CheckCircle2 size={13} />
-              Approved {formatRelativeOnly(pr.approvedAt)}
-            </span>
-          )}
-        </div>
+          <span>•</span>
 
-        <div className="pr-meta-stats">
-          {/* Changed Files */}
-          {pr.changedFiles > 0 && (
-            <span title={`${pr.changedFiles} files changed`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-              <FileCode size={13} />
-              {pr.changedFiles} files
-            </span>
-          )}
+          {/* User's specified exact timestamp format: Created: 1d 18h 1m ago (10 Sep, 11:37 PM) */}
+          <span className="timestamp-text">
+            <strong>{createdFormatted}</strong>
+          </span>
 
-          {/* Additions / Deletions Diff */}
-          {(pr.additions > 0 || pr.deletions > 0) && (
-            <div className="diff-stats" title={`+${pr.additions} / -${pr.deletions} lines`}>
-              <span className="diff-add">+{pr.additions}</span>
-              <span className="diff-del">-{pr.deletions}</span>
-            </div>
-          )}
+          <span>•</span>
+
+          <span>
+            by{' '}
+            <a
+              href={pr.author?.url || `https://github.com/${pr.author?.login}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="author-link"
+            >
+              @{pr.author?.login}
+            </a>
+          </span>
         </div>
-      </footer>
-    </article>
+      </div>
+
+      {/* Right Side: Unresolved Comments & Diff stats */}
+      <div className="pr-row-right">
+        {/* Unresolved Comments Badge (Specifically for PR I raised) */}
+        {isRaisedTab && (
+          <div>
+            {hasUnresolvedComments ? (
+              <span
+                className="unresolved-badge"
+                title={`${pr.unresolvedCommentsCount} unresolved review thread${pr.unresolvedCommentsCount > 1 ? 's' : ''}`}
+              >
+                <MessageSquare size={12} />
+                <span>{pr.unresolvedCommentsCount} unresolved</span>
+              </span>
+            ) : (
+              <span className="resolved-badge" title="All review threads resolved">
+                <Check size={12} />
+                <span>Resolved</span>
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Total Comments if any */}
+        {!isRaisedTab && pr.totalCommentsCount > 0 && (
+          <span
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-fg-muted)', fontSize: '12px' }}
+            title={`${pr.totalCommentsCount} comments`}
+          >
+            <MessageSquare size={13} />
+            <span>{pr.totalCommentsCount}</span>
+          </span>
+        )}
+
+        {/* Additions / Deletions Diff */}
+        {(pr.additions > 0 || pr.deletions > 0) && (
+          <div className="diff-stat" title={`+${pr.additions} / -${pr.deletions}`}>
+            <span className="diff-stat-add">+{pr.additions}</span>
+            <span className="diff-stat-del">-{pr.deletions}</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

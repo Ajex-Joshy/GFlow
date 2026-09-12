@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search } from 'lucide-react';
+import { Search, GitPullRequest } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
@@ -44,7 +44,6 @@ export default function App() {
   // 1. Initial Auth Check & OAuth config
   useEffect(() => {
     const checkAuth = async () => {
-      // Check for URL error params from OAuth redirect
       const urlParams = new URLSearchParams(window.location.search);
       const err = urlParams.get('error');
       if (err) {
@@ -66,7 +65,6 @@ export default function App() {
           setIsAuthenticated(true);
         }
       } catch {
-        // Not authenticated
         setIsAuthenticated(false);
         setUser(null);
       } finally {
@@ -160,11 +158,11 @@ export default function App() {
   if (authLoading) {
     return (
       <div className="app-container" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-          <div className="refresh-btn spinning" style={{ margin: '0 auto 1rem', padding: '0.75rem' }}>
-            <span style={{ display: 'inline-block', width: 24, height: 24, border: '3px solid var(--border-active)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <div style={{ textAlign: 'center', color: 'var(--color-fg-muted)' }}>
+          <div className="gh-btn spinning" style={{ margin: '0 auto 0.75rem', padding: '0.5rem', background: 'transparent', border: 'none' }}>
+            <span style={{ display: 'inline-block', width: 22, height: 22, border: '2px solid var(--color-border-default)', borderTopColor: 'var(--color-accent-emphasis)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
           </div>
-          <p>Connecting to GitHub...</p>
+          <p style={{ fontSize: '13px' }}>Loading GitHub pull requests...</p>
         </div>
       </div>
     );
@@ -174,7 +172,6 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <div className="app-container">
-        <Navbar />
         <LoginView
           onLoginWithToken={handleLoginWithToken}
           oauthConfigured={oauthConfigured}
@@ -194,22 +191,19 @@ export default function App() {
       />
 
       <main className="main-content">
-        {/* Header Title & Search Controls */}
         <div className="dashboard-header">
           <div className="dashboard-title-row">
-            <div>
-              <h1 className="page-title">Pull Request Dashboard</h1>
-              <p className="page-subtitle">
-                Real-time review requests, your authored PRs with unresolved comment tracking, and approvals.
-              </p>
-            </div>
+            <h1 className="page-title">
+              <GitPullRequest size={20} style={{ color: 'var(--color-fg-muted)' }} />
+              <span>Pull Requests</span>
+            </h1>
 
             <div className="search-filter-box">
-              <Search size={16} className="search-icon" />
+              <Search size={14} className="search-icon" />
               <input
                 type="text"
                 className="search-input"
-                placeholder="Filter by repo, title, #id..."
+                placeholder="Filter pull requests..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -222,7 +216,7 @@ export default function App() {
             </div>
           )}
 
-          {/* 3 Tabs: Reviewer, Raised, Approved */}
+          {/* UnderlineNav 3 Tabs: Reviewer, Raised, Approved */}
           <Tabs
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -230,30 +224,42 @@ export default function App() {
           />
         </div>
 
-        {/* PR List / Cards Section */}
-        {isLoadingPRs ? (
-          <div className="pr-grid">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="skeleton-card">
-                <div className="skeleton-line" style={{ width: '35%', height: '22px' }} />
-                <div className="skeleton-line" style={{ width: '80%', height: '26px' }} />
-                <div className="skeleton-line" style={{ width: '45%', height: '18px' }} />
-              </div>
-            ))}
+        {/* GitHub Box Container for PR Rows */}
+        <div className="gh-box">
+          <div className="gh-box-header">
+            <div className="gh-box-header-title">
+              {currentPRs.length} {currentPRs.length === 1 ? 'Pull Request' : 'Pull Requests'}
+            </div>
+            {activeTab === 'raised' && counts.totalUnresolvedRaisedComments > 0 && (
+              <span style={{ color: 'var(--color-attention-fg)', fontSize: '12px', fontWeight: 500 }}>
+                {counts.totalUnresolvedRaisedComments} unresolved comments across open PRs
+              </span>
+            )}
           </div>
-        ) : currentPRs.length === 0 ? (
-          <EmptyState tabType={activeTab} searchQuery={searchQuery} />
-        ) : (
-          <section className="pr-grid" aria-label="Pull Requests List">
-            {currentPRs.map((pr) => (
-              <PRCard
-                key={pr.id || `${pr.repository?.nameWithOwner}-${pr.number}`}
-                pr={pr}
-                tabType={activeTab}
-              />
-            ))}
-          </section>
-        )}
+
+          {isLoadingPRs ? (
+            <div>
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="gh-skeleton-row">
+                  <div className="gh-skeleton-line" style={{ width: '40%', height: '18px' }} />
+                  <div className="gh-skeleton-line" style={{ width: '65%', height: '14px' }} />
+                </div>
+              ))}
+            </div>
+          ) : currentPRs.length === 0 ? (
+            <EmptyState tabType={activeTab} searchQuery={searchQuery} />
+          ) : (
+            <div>
+              {currentPRs.map((pr) => (
+                <PRCard
+                  key={pr.id || `${pr.repository?.nameWithOwner}-${pr.number}`}
+                  pr={pr}
+                  tabType={activeTab}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
