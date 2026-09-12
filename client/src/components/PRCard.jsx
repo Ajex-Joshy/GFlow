@@ -11,8 +11,8 @@ import {
 import {
   formatPRTimestamp,
   formatRelativeOnly,
-  formatReviewWaitTimer,
-  formatHHMM,
+  formatDurationCompact,
+  formatDurationAgo,
 } from '../utils/dateFormatter';
 
 function getReviewerTooltip(rev, pr) {
@@ -29,8 +29,8 @@ function getReviewerTooltip(rev, pr) {
     const time = rev.submittedAt ? formatRelativeOnly(rev.submittedAt) : 'recently';
     return `${name}commented ${time}`;
   }
-  const waitTime = formatHHMM(rev.requestedAt || pr.reviewRequestedAt || pr.createdAt);
-  return `${name}pending ${waitTime}`;
+  const waitTime = formatDurationAgo(rev.requestedAt || pr.reviewRequestedAt || pr.createdAt);
+  return `${name}requested ${waitTime}`;
 }
 
 export default function PRCard({
@@ -49,7 +49,7 @@ export default function PRCard({
   const isMerged = pr.state === 'MERGED' || Boolean(pr.mergedAt);
   const hasUnresolvedComments = (pr.unresolvedCommentsCount || 0) > 0;
   const createdFormatted = formatPRTimestamp(pr.createdAt);
-  const reviewWaitTimerFormatted = formatReviewWaitTimer(pr.reviewRequestedAt || pr.createdAt);
+  const reviewWaitTimerFormatted = formatDurationCompact(pr.reviewRequestedAt || pr.createdAt);
 
   return (
     <div className={`pr-row ${isSelected ? 'is-selected' : ''}`} ref={cardRef}>
@@ -215,7 +215,7 @@ export default function PRCard({
         {isReviewerTab && showReviewWaitTimer && (
           <div
             className="sla-timer-chip"
-            title={`Review requested ${formatRelativeOnly(pr.reviewRequestedAt || pr.createdAt)} • Elapsed wait time: ${reviewWaitTimerFormatted}`}
+            title={`Review requested ${formatDurationAgo(pr.reviewRequestedAt || pr.createdAt)}`}
           >
             <Clock size={12} className="sla-timer-icon" />
             <span className="sla-timer-time">{reviewWaitTimerFormatted}</span>

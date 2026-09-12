@@ -299,7 +299,7 @@ export default function SettingsModal({
 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h3 className="settings-heading">Review Wait Timer (HH : MM)</h3>
+                    <h3 className="settings-heading">Review Wait Timer</h3>
                     <label className="gh-toggle-label">
                       <input
                         type="checkbox"
@@ -310,7 +310,7 @@ export default function SettingsModal({
                     </label>
                   </div>
                   <p className="settings-desc">
-                    In the &quot;PR where I am reviewer&quot; tab, show the elapsed wait time since review was requested in <code>HH : MM</code> format (e.g. <code>04 : 32</code>).
+                    In the &quot;PR where I am reviewer&quot; tab, show the elapsed wait time since review was requested (e.g. <code>4h 35m</code> or <code>1d 4h</code>).
                   </p>
                 </div>
 

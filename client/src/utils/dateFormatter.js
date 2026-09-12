@@ -117,3 +117,41 @@ export function formatHHMM(isoString) {
 
   return `${hh}:${mm}`;
 }
+
+/**
+ * Format elapsed duration into clean units (e.g. "4h 35m", "1d 4h", "25m")
+ */
+export function formatDurationCompact(isoString) {
+  if (!isoString) return '0m';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '0m';
+
+  const now = new Date();
+  const diffMs = Math.max(0, now - date);
+
+  const totalMinutes = Math.floor(diffMs / 60000);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) {
+    return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  }
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  }
+  if (minutes > 0) {
+    return `${minutes}m`;
+  }
+  return 'just now';
+}
+
+/**
+ * Format elapsed duration with "ago" suffix (e.g. "4h 35m ago", "1d 4h ago", "25m ago")
+ */
+export function formatDurationAgo(isoString) {
+  const compact = formatDurationCompact(isoString);
+  if (compact === 'just now') return 'just now';
+  return `${compact} ago`;
+}
