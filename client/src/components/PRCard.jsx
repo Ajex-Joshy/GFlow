@@ -5,6 +5,8 @@ import {
   GitMerge,
   MessageSquare,
   Check,
+  X,
+  Clock,
 } from 'lucide-react';
 import { formatPRTimestamp, formatRelativeOnly } from '../utils/dateFormatter';
 
@@ -13,6 +15,9 @@ export default function PRCard({
   tabType,
   showLabels = true,
   showDetailedTimestamp = true,
+  showCIStatus = true,
+  isSelected = false,
+  cardRef = null,
 }) {
   const isRaisedTab = tabType === 'raised';
   const isMerged = pr.state === 'MERGED' || Boolean(pr.mergedAt);
@@ -20,7 +25,7 @@ export default function PRCard({
   const createdFormatted = formatPRTimestamp(pr.createdAt);
 
   return (
-    <div className="pr-row">
+    <div className={`pr-row ${isSelected ? 'is-selected' : ''}`} ref={cardRef}>
       {/* GitHub PR Status Icon (Green for open, purple for merged, gray for draft) */}
       <div className={`pr-status-icon ${isMerged ? 'merged' : pr.isDraft ? 'draft' : 'open'}`}>
         {isMerged ? (
@@ -114,6 +119,29 @@ export default function PRCard({
               <span style={{ color: 'var(--color-merged-fg)' }}>
                 merged {formatRelativeOnly(pr.mergedAt)}
               </span>
+            </>
+          )}
+
+          {/* CI / GitHub Actions Status Badge */}
+          {showCIStatus && pr.checkState && (
+            <>
+              <span>•</span>
+              {pr.checkState === 'SUCCESS' ? (
+                <span className="ci-status-badge success" title="All CI checks have passed">
+                  <Check size={11} strokeWidth={2.5} />
+                  <span>passed</span>
+                </span>
+              ) : pr.checkState === 'FAILURE' || pr.checkState === 'ERROR' ? (
+                <span className="ci-status-badge failure" title="CI checks have failed">
+                  <X size={11} strokeWidth={2.5} />
+                  <span>failing</span>
+                </span>
+              ) : (
+                <span className="ci-status-badge pending" title="CI checks are pending or in progress">
+                  <Clock size={11} />
+                  <span>pending</span>
+                </span>
+              )}
             </>
           )}
         </div>

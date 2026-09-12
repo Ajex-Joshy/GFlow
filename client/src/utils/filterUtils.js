@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS = {
   showApprovedTab: true,
   showLabels: true,
   showDetailedTimestamp: true,
+  showCIStatus: true,
 };
 
 /**

@@ -118,6 +118,7 @@ const formatPRNode = (pr, extra = {}) => {
       login: r.requestedReviewer?.login || r.requestedReviewer?.name || 'Reviewer',
       avatarUrl: r.requestedReviewer?.avatarUrl || null,
     })),
+    checkState: pr.commits?.nodes?.[0]?.commit?.statusCheckRollup?.state || null,
     ...extra,
   };
 };
@@ -175,6 +176,15 @@ const PR_FIELDS = `
       requestedReviewer {
         ... on User { login avatarUrl }
         ... on Team { name }
+      }
+    }
+  }
+  commits(last: 1) {
+    nodes {
+      commit {
+        statusCheckRollup {
+          state
+        }
       }
     }
   }

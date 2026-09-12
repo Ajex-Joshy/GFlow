@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, GitPullRequest, GitMerge, Building2, Bot } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { Search, GitPullRequest, GitMerge, Building2, Bot, Command } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
@@ -7,6 +7,7 @@ import PRCard from './components/PRCard';
 import EmptyState from './components/EmptyState';
 import LoginView from './components/LoginView';
 import SettingsModal from './components/SettingsModal';
+import ShortcutsModal from './components/ShortcutsModal';
 import { loadSettings, saveSettings, isBotPR } from './utils/filterUtils';
 
 export default function App() {
@@ -18,6 +19,10 @@ export default function App() {
     return s.defaultOrg || 'all';
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const cardRefs = useRef([]);
+  const searchInputRef = useRef(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [oauthConfigured, setOauthConfigured] = useState(false);
@@ -261,6 +266,133 @@ export default function App() {
     });
   }, [filteredData, activeTab, raisedStateFilter, searchQuery]);
 
+  // Reset keyboard focus when view or search changes
+  useEffect(() => {
+    setFocusedIndex(-1);
+  }, [activeTab, selectedOrg, raisedStateFilter, searchQuery]);
+
+  // Global Keyboard Navigation & Hotkeys
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // If modal is open, let Escape close it
+      if (isSettingsOpen || isShortcutsOpen) {
+        if (e.key === 'Escape') {
+          setIsSettingsOpen(false);
+          setIsShortcutsOpen(false);
+        }
+        return;
+      }
+
+      const activeElement = document.activeElement;
+      const isInputFocused =
+        activeElement &&
+        (activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.tagName === 'SELECT' ||
+          activeElement.isContentEditable);
+
+      // '/' to focus search bar (when not already typing)
+      if (e.key === '/' && !isInputFocused) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      // 'Escape' to blur search input or clear PR selection
+      if (e.key === 'Escape') {
+        if (isInputFocused) {
+          activeElement.blur();
+        } else {
+          setFocusedIndex(-1);
+        }
+        return;
+      }
+
+      // If user is currently typing in an input/search, don't trigger hotkeys
+      if (isInputFocused) {
+        return;
+      }
+
+      // '?' to open shortcuts modal
+      if (e.key === '?') {
+        e.preventDefault();
+        setIsShortcutsOpen(true);
+        return;
+      }
+
+      // 'r' or 'R' to refresh data
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        loadPRData(false);
+        return;
+      }
+
+      // '1', '2', '3' tab switches
+      if (e.key === '1') {
+        e.preventDefault();
+        setActiveTab('reviewer');
+        return;
+      }
+      if (e.key === '2') {
+        e.preventDefault();
+        setActiveTab('raised');
+        setRaisedStateFilter('open');
+        return;
+      }
+      if (e.key === '3' && settings.showApprovedTab !== false) {
+        e.preventDefault();
+        setActiveTab('approved');
+        return;
+      }
+
+      const totalPRs = currentPRs.length;
+      if (totalPRs === 0) return;
+
+      // 'j' or 'ArrowDown': Next PR
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusedIndex((prev) => {
+          const next = prev < totalPRs - 1 ? prev + 1 : 0;
+          cardRefs.current[next]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          return next;
+        });
+        return;
+      }
+
+      // 'k' or 'ArrowUp': Previous PR
+      if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedIndex((prev) => {
+          const next = prev > 0 ? prev - 1 : totalPRs - 1;
+          cardRefs.current[next]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          return next;
+        });
+        return;
+      }
+
+      // 'Enter' or 'o': Open selected PR on GitHub
+      if (e.key === 'Enter' || e.key === 'o' || e.key === 'O') {
+        if (focusedIndex >= 0 && focusedIndex < totalPRs) {
+          const targetPR = currentPRs[focusedIndex];
+          if (targetPR?.url) {
+            e.preventDefault();
+            window.open(targetPR.url, '_blank', 'noopener,noreferrer');
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    isSettingsOpen,
+    isShortcutsOpen,
+    currentPRs,
+    focusedIndex,
+    settings.showApprovedTab,
+    loadPRData,
+  ]);
+
   // If initial auth check is loading
   if (authLoading) {
     return (
@@ -333,13 +465,26 @@ export default function App() {
               <div className="search-filter-box">
                 <Search size={14} className="search-icon" />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   className="search-input"
-                  placeholder="Filter pull requests..."
+                  placeholder="Filter pull requests... (Press /)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
+
+              {/* Keyboard Shortcuts Helper Button */}
+              <button
+                type="button"
+                className="keyboard-hint-btn"
+                onClick={() => setIsShortcutsOpen(true)}
+                title="View Keyboard Shortcuts (?)"
+              >
+                <Command size={12} />
+                <span>Shortcuts</span>
+                <kbd className="gh-kbd">?</kbd>
+              </button>
             </div>
           </div>
 
@@ -440,13 +585,16 @@ export default function App() {
             />
           ) : (
             <div>
-              {currentPRs.map((pr) => (
+              {currentPRs.map((pr, idx) => (
                 <PRCard
                   key={pr.id || `${pr.repository?.nameWithOwner}-${pr.number}`}
+                  cardRef={(el) => (cardRefs.current[idx] = el)}
+                  isSelected={idx === focusedIndex}
                   pr={pr}
                   tabType={activeTab}
                   showLabels={settings.showLabels !== false}
                   showDetailedTimestamp={settings.showDetailedTimestamp !== false}
+                  showCIStatus={settings.showCIStatus !== false}
                 />
               ))}
             </div>
@@ -463,6 +611,12 @@ export default function App() {
         user={user}
         organizations={organizations}
         availableRepos={availableRepos}
+      />
+
+      {/* Keyboard Shortcuts Modal */}
+      <ShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
       />
     </div>
   );
