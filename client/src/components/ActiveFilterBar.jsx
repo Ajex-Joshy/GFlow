@@ -11,8 +11,16 @@ export default function ActiveFilterBar({
     authors: 'Author',
     assignees: 'Assignee',
     reviewers: 'Reviewer',
+    reviewStatus: 'Review',
     labels: 'Label',
     slaUrgency: 'SLA',
+  };
+
+  const reviewStatusDisplayNames = {
+    PENDING: 'Pending Review',
+    APPROVED: 'Approved',
+    CHANGES_REQUESTED: 'Changes Requested',
+    COMMENTED: 'Commented',
   };
 
   const slaDisplayNames = {
@@ -32,6 +40,8 @@ export default function ActiveFilterBar({
       let displayValue = item;
       if (catKey === 'repositories' && item.includes('/')) {
         displayValue = item.split('/')[1];
+      } else if (catKey === 'reviewStatus') {
+        displayValue = reviewStatusDisplayNames[item] || item;
       } else if (catKey === 'slaUrgency') {
         displayValue = slaDisplayNames[item] || item;
       }

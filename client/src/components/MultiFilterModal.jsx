@@ -11,6 +11,8 @@ import {
   Tag,
   Clock,
   SlidersHorizontal,
+  CheckCircle2,
+  MessageSquare,
 } from 'lucide-react';
 import { getReviewSlaStatus, getCreatedSlaStatus } from '../utils/slaUtils';
 
@@ -139,6 +141,53 @@ export default function MultiFilterModal({
       }
     });
 
+    const reviewStatusCounts = {
+      PENDING: 0,
+      APPROVED: 0,
+      CHANGES_REQUESTED: 0,
+      COMMENTED: 0,
+    };
+
+    (prPool || []).forEach((pr) => {
+      const reviewers = pr.reviewers || [];
+      const hasPending = reviewers.some((r) => !r.state || r.state === 'PENDING');
+      const hasApproved = reviewers.some((r) => r.state === 'APPROVED');
+      const hasChanges = reviewers.some((r) => r.state === 'CHANGES_REQUESTED');
+      const hasCommented = reviewers.some((r) => r.state === 'COMMENTED');
+
+      if (hasPending) reviewStatusCounts.PENDING += 1;
+      if (hasApproved) reviewStatusCounts.APPROVED += 1;
+      if (hasChanges) reviewStatusCounts.CHANGES_REQUESTED += 1;
+      if (hasCommented) reviewStatusCounts.COMMENTED += 1;
+    });
+
+    const reviewStatusOptions = [
+      {
+        id: 'PENDING',
+        label: 'Pending Review (Awaiting sign-off)',
+        statusType: 'pending',
+        count: reviewStatusCounts.PENDING,
+      },
+      {
+        id: 'APPROVED',
+        label: 'Approved (Signed off)',
+        statusType: 'approved',
+        count: reviewStatusCounts.APPROVED,
+      },
+      {
+        id: 'CHANGES_REQUESTED',
+        label: 'Changes Requested (Requires updates)',
+        statusType: 'changes',
+        count: reviewStatusCounts.CHANGES_REQUESTED,
+      },
+      {
+        id: 'COMMENTED',
+        label: 'Commented (Review feedback left)',
+        statusType: 'commented',
+        count: reviewStatusCounts.COMMENTED,
+      },
+    ];
+
     const slaOptions = [
       {
         id: 'overdue',
@@ -172,6 +221,7 @@ export default function MultiFilterModal({
       assignees: Array.from(assigneesMap.values()).sort((a, b) => b.count - a.count),
       reviewers: Array.from(reviewersMap.values()).sort((a, b) => b.count - a.count),
       labels: Array.from(labelsMap.values()).sort((a, b) => b.count - a.count),
+      reviewStatus: reviewStatusOptions,
       slaUrgency: slaOptions,
     };
   }, [prPool, settings]);
@@ -206,6 +256,13 @@ export default function MultiFilterModal({
       icon: Eye,
       count: filters.reviewers?.length || 0,
       totalAvailable: categoryData.reviewers.length,
+    },
+    {
+      id: 'reviewStatus',
+      label: 'Review Status',
+      icon: CheckCircle2,
+      count: filters.reviewStatus?.length || 0,
+      totalAvailable: categoryData.reviewStatus.length,
     },
     {
       id: 'labels',
@@ -409,6 +466,20 @@ export default function MultiFilterModal({
                             className="multi-filter-label-swatch"
                             style={{ backgroundColor: opt.color.startsWith('#') ? opt.color : `#${opt.color}` }}
                           />
+                        )}
+
+                        {activeCategory === 'reviewStatus' && (
+                          <span className={`multi-filter-status-icon ${opt.statusType}`}>
+                            {opt.id === 'APPROVED' ? (
+                              <Check size={13} strokeWidth={3} style={{ color: 'var(--color-open-fg)' }} />
+                            ) : opt.id === 'CHANGES_REQUESTED' ? (
+                              <X size={13} strokeWidth={3} style={{ color: 'var(--color-danger-fg)' }} />
+                            ) : opt.id === 'COMMENTED' ? (
+                              <MessageSquare size={12} strokeWidth={2.5} style={{ color: 'var(--color-accent-fg)' }} />
+                            ) : (
+                              <Clock size={12} strokeWidth={2.5} style={{ color: 'var(--color-attention-fg)' }} />
+                            )}
+                          </span>
                         )}
 
                         <span className="multi-filter-option-title" title={opt.fullName || opt.label}>

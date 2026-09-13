@@ -48,6 +48,7 @@ export default function App() {
     authors: [],
     assignees: [],
     reviewers: [],
+    reviewStatus: [],
     labels: [],
     slaUrgency: [],
   });
@@ -65,6 +66,7 @@ export default function App() {
       authors: [],
       assignees: [],
       reviewers: [],
+      reviewStatus: [],
       labels: [],
       slaUrgency: [],
     });
@@ -528,6 +530,29 @@ export default function App() {
       list = list.filter((pr) =>
         (pr.reviewers || []).some((r) => activeMultiFilters.reviewers.includes(r.login || r.name))
       );
+    }
+
+    if (activeMultiFilters.reviewStatus?.length > 0) {
+      list = list.filter((pr) => {
+        const reviewers = pr.reviewers || [];
+        if (reviewers.length === 0) return false;
+
+        // If specific reviewers are also filtered (e.g. @Surynx), check the status of THOSE specific reviewers!
+        if (activeMultiFilters.reviewers?.length > 0) {
+          return reviewers.some((r) => {
+            const login = r.login || r.name;
+            const matchesReviewer = activeMultiFilters.reviewers.includes(login);
+            const revState = r.state || 'PENDING';
+            return matchesReviewer && activeMultiFilters.reviewStatus.includes(revState);
+          });
+        }
+
+        // Otherwise check if any reviewer on the PR matches the selected review status
+        return reviewers.some((r) => {
+          const revState = r.state || 'PENDING';
+          return activeMultiFilters.reviewStatus.includes(revState);
+        });
+      });
     }
 
     if (activeMultiFilters.labels?.length > 0) {
