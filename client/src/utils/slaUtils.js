@@ -107,14 +107,29 @@ export function getCreatedSlaStatus(pr, settings = {}) {
   const hasApproved = pr.reviewers?.some((r) => r.state === 'APPROVED');
   if (hasApproved) return null;
 
-  const dateStr = pr.createdAt;
-  if (!dateStr) return null;
-
   const excludedDays = settings.slaExcludedDays ?? (settings.pauseSlaOnWeekends === false ? [] : [0, 6]);
   const nudgeHours = Number(settings.createdNudgeHours) || 24;
   const stalledHours = Number(settings.createdStalledHours) || 48;
 
-  const elapsedHours = calculateElapsedHours(dateStr, excludedDays);
+  // Measure wait time from the oldest pending reviewer request, or fallback to PR creation
+  const pendingReviewers = pr.reviewers?.filter((r) => r.state === 'PENDING' || r.state !== 'APPROVED') || [];
+  let referenceDate = pr.createdAt;
+
+  if (pendingReviewers.length > 0) {
+    const validDates = pendingReviewers
+      .map((r) => r.requestedAt)
+      .filter(Boolean)
+      .map((d) => new Date(d).getTime())
+      .filter((t) => !isNaN(t));
+
+    if (validDates.length > 0) {
+      referenceDate = new Date(Math.min(...validDates));
+    }
+  }
+
+  if (!referenceDate) return null;
+
+  const elapsedHours = calculateElapsedHours(referenceDate, excludedDays);
   const formattedDuration = formatSlaDuration(elapsedHours);
 
   if (elapsedHours >= stalledHours) {

@@ -9,7 +9,7 @@ import LoginView from './components/LoginView';
 import SettingsModal from './components/SettingsModal';
 import ShortcutsModal from './components/ShortcutsModal';
 import { loadSettings, saveSettings, isBotPR } from './utils/filterUtils';
-import { getCreatedSlaStatus } from './utils/slaUtils';
+import { getCreatedSlaStatus, getReviewSlaStatus } from './utils/slaUtils';
 import { formatRelativeOnly } from './utils/dateFormatter';
 import {
   getCachedUser,
@@ -39,6 +39,7 @@ export default function App() {
   const [selectedRepo, setSelectedRepo] = useState('all');
   const [sortOrder, setSortOrder] = useState('recently-updated');
   const [onlyUnresolved, setOnlyUnresolved] = useState(false);
+  const [onlyOverdue, setOnlyOverdue] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(cachedUserEntry?.user));
   const [authLoading, setAuthLoading] = useState(() => !Boolean(cachedUserEntry?.user));
   const [oauthConfigured, setOauthConfigured] = useState(false);
@@ -301,6 +302,20 @@ export default function App() {
     });
     const teamStalledPRsCount = teamStalledPRs.length;
 
+    const reviewerOverdueCount = reviewer.filter(
+      (pr) => getReviewSlaStatus(pr, settings)?.status === 'overdue'
+    ).length;
+
+    const raisedStalledCount = raised.filter(
+      (pr) => getCreatedSlaStatus(pr, settings)?.status === 'stalled'
+    ).length;
+
+    const teamOverdueCount = team.filter((pr) => {
+      const createdSla = getCreatedSlaStatus(pr, settings);
+      const reviewSla = getReviewSlaStatus(pr, settings);
+      return createdSla?.status === 'stalled' || reviewSla?.status === 'overdue';
+    }).length;
+
     return {
       reviewer,
       raised,
@@ -316,6 +331,9 @@ export default function App() {
         approved: approved.length,
         team: team.length,
         teamStalledPRsCount,
+        reviewerOverdueCount,
+        raisedStalledCount,
+        teamOverdueCount,
         unresolvedRaisedPRsCount,
         totalUnresolvedRaisedComments,
       },
@@ -389,6 +407,7 @@ export default function App() {
   // Tab change adjustments for sort and filters
   useEffect(() => {
     setOnlyUnresolved(false);
+    setOnlyOverdue(false);
     const isSortAvailable = currentSortOptions.some((opt) => opt.value === sortOrder);
     if (!isSortAvailable) {
       setSortOrder('recently-updated');
@@ -400,11 +419,28 @@ export default function App() {
     let list = [];
     if (activeTab === 'raised') {
       list = raisedStateFilter === 'merged' ? filteredData.raisedMerged : filteredData.raised;
-      if (raisedStateFilter === 'open' && onlyUnresolved) {
-        list = list.filter((pr) => (pr.unresolvedCommentsCount || 0) > 0);
+      if (raisedStateFilter === 'open') {
+        if (onlyUnresolved) {
+          list = list.filter((pr) => (pr.unresolvedCommentsCount || 0) > 0);
+        }
+        if (onlyOverdue) {
+          list = list.filter((pr) => getCreatedSlaStatus(pr, settings)?.status === 'stalled');
+        }
       }
     } else if (activeTab === 'team') {
       list = filteredData.team || [];
+      if (onlyOverdue) {
+        list = list.filter((pr) => {
+          const createdSla = getCreatedSlaStatus(pr, settings);
+          const reviewSla = getReviewSlaStatus(pr, settings);
+          return createdSla?.status === 'stalled' || reviewSla?.status === 'overdue';
+        });
+      }
+    } else if (activeTab === 'reviewer') {
+      list = filteredData.reviewer || [];
+      if (onlyOverdue) {
+        list = list.filter((pr) => getReviewSlaStatus(pr, settings)?.status === 'overdue');
+      }
     } else {
       list = filteredData[activeTab] || [];
     }
@@ -468,7 +504,7 @@ export default function App() {
   // Reset keyboard focus when view or search changes
   useEffect(() => {
     setFocusedIndex(-1);
-  }, [activeTab, selectedOrg, raisedStateFilter, searchQuery, selectedRepo, sortOrder, onlyUnresolved]);
+  }, [activeTab, selectedOrg, raisedStateFilter, searchQuery, selectedRepo, sortOrder, onlyUnresolved, onlyOverdue]);
 
   // Global Keyboard Navigation & Hotkeys
   useEffect(() => {
@@ -759,6 +795,7 @@ export default function App() {
                     onClick={() => {
                       setRaisedStateFilter('open');
                       setOnlyUnresolved(!onlyUnresolved);
+                      if (!onlyUnresolved) setOnlyOverdue(false);
                     }}
                     title={`${filteredData.counts.unresolvedRaisedPRsCount} open PR${filteredData.counts.unresolvedRaisedPRsCount > 1 ? 's have' : ' has'} ${filteredData.counts.totalUnresolvedRaisedComments} unresolved comment thread${filteredData.counts.totalUnresolvedRaisedComments > 1 ? 's' : ''}`}
                   >
@@ -766,21 +803,66 @@ export default function App() {
                     <span>{filteredData.counts.unresolvedRaisedPRsCount} Unresolved</span>
                   </button>
                 )}
+
+                {settings.enableSlaTracking !== false && filteredData.counts.raisedStalledCount > 0 && (
+                  <button
+                    type="button"
+                    className={`gh-state-btn ${onlyOverdue ? 'active overdue-filter' : ''}`}
+                    onClick={() => {
+                      setRaisedStateFilter('open');
+                      setOnlyOverdue(!onlyOverdue);
+                      if (!onlyOverdue) setOnlyUnresolved(false);
+                    }}
+                    title={`${filteredData.counts.raisedStalledCount} open PR${filteredData.counts.raisedStalledCount > 1 ? 's are' : ' is'} stalled past SLA limits (${settings.createdStalledHours || 48}h)`}
+                  >
+                    <Clock size={13} style={{ color: onlyOverdue ? 'var(--color-danger-fg)' : 'inherit' }} />
+                    <span>{filteredData.counts.raisedStalledCount} Stalled</span>
+                  </button>
+                )}
               </div>
             ) : activeTab === 'team' ? (
-              <div className="gh-box-header-title">
-                <Users size={14} style={{ color: 'var(--color-accent-fg)' }} />
-                <span>{currentPRs.length} Team {currentPRs.length === 1 ? 'Pull Request' : 'Pull Requests'}</span>
-                {selectedRepo !== 'all' && (
-                  <span className="filter-tag">• {selectedRepo.includes('/') ? selectedRepo.split('/')[1] : selectedRepo}</span>
+              <div className="gh-state-filters">
+                <button
+                  type="button"
+                  className={`gh-state-btn ${!onlyOverdue ? 'active open-filter' : ''}`}
+                  onClick={() => setOnlyOverdue(false)}
+                >
+                  <Users size={14} style={{ color: !onlyOverdue ? 'var(--color-accent-fg)' : 'inherit' }} />
+                  <span>{filteredData.counts.team} Team PRs</span>
+                </button>
+
+                {settings.enableSlaTracking !== false && filteredData.counts.teamOverdueCount > 0 && (
+                  <button
+                    type="button"
+                    className={`gh-state-btn ${onlyOverdue ? 'active overdue-filter' : ''}`}
+                    onClick={() => setOnlyOverdue(!onlyOverdue)}
+                    title={`${filteredData.counts.teamOverdueCount} team PR(s) have breached SLA turnaround targets`}
+                  >
+                    <Clock size={13} style={{ color: onlyOverdue ? 'var(--color-danger-fg)' : 'inherit' }} />
+                    <span>{filteredData.counts.teamOverdueCount} Overdue</span>
+                  </button>
                 )}
               </div>
             ) : activeTab === 'reviewer' ? (
-              <div className="gh-box-header-title">
-                <GitPullRequest size={14} style={{ color: 'var(--color-open-fg)' }} />
-                <span>{currentPRs.length} {currentPRs.length === 1 ? 'Review needed' : 'Reviews needed'}</span>
-                {selectedRepo !== 'all' && (
-                  <span className="filter-tag">• {selectedRepo.includes('/') ? selectedRepo.split('/')[1] : selectedRepo}</span>
+              <div className="gh-state-filters">
+                <div className="gh-box-header-title" style={{ paddingRight: '0.4rem' }}>
+                  <GitPullRequest size={14} style={{ color: 'var(--color-open-fg)' }} />
+                  <span>{currentPRs.length} {currentPRs.length === 1 ? 'Review needed' : 'Reviews needed'}</span>
+                  {selectedRepo !== 'all' && (
+                    <span className="filter-tag">• {selectedRepo.includes('/') ? selectedRepo.split('/')[1] : selectedRepo}</span>
+                  )}
+                </div>
+
+                {settings.enableSlaTracking !== false && filteredData.counts.reviewerOverdueCount > 0 && (
+                  <button
+                    type="button"
+                    className={`gh-state-btn ${onlyOverdue ? 'active overdue-filter' : ''}`}
+                    onClick={() => setOnlyOverdue(!onlyOverdue)}
+                    title={`${filteredData.counts.reviewerOverdueCount} review request(s) are overdue past your SLA target (${settings.reviewOverdueHours || 24}h)`}
+                  >
+                    <Clock size={13} style={{ color: onlyOverdue ? 'var(--color-danger-fg)' : 'inherit' }} />
+                    <span>{filteredData.counts.reviewerOverdueCount} Overdue</span>
+                  </button>
                 )}
               </div>
             ) : (

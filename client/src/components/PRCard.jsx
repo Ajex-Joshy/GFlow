@@ -11,7 +11,7 @@ import {
   Copy,
   Bell,
 } from 'lucide-react';
-import { getReviewSlaStatus, getCreatedSlaStatus } from '../utils/slaUtils';
+import { getReviewSlaStatus, getCreatedSlaStatus, calculateElapsedHours } from '../utils/slaUtils';
 import {
   formatPRTimestamp,
   formatRelativeOnly,
@@ -86,19 +86,30 @@ export default function PRCard({
     return pr.reviewers?.filter((r) => r.state !== 'APPROVED') || [];
   }, [pr.reviewers]);
 
+  // Target reviewers who have actually been waiting (>= warning hours), leaving newly-added reviewers alone
+  const targetReviewers = useMemo(() => {
+    const warningHours = Number(settings?.reviewWarningHours) || 12;
+    const overdue = pendingReviewers.filter((r) => {
+      const waitDate = r.requestedAt || pr.reviewRequestedAt || pr.createdAt;
+      const elapsed = calculateElapsedHours(waitDate, settings?.slaExcludedDays);
+      return elapsed >= warningHours;
+    });
+    return overdue.length > 0 ? overdue : pendingReviewers;
+  }, [pendingReviewers, settings?.reviewWarningHours, settings?.slaExcludedDays, pr.reviewRequestedAt, pr.createdAt]);
+
   const pendingReviewerSummary = useMemo(() => {
-    if (pendingReviewers.length > 0) {
-      return pendingReviewers.map((r) => `@${r.login}`).join(' ');
+    if (targetReviewers.length > 0) {
+      return targetReviewers.map((r) => `@${r.login}`).join(' ');
     }
     return 'team';
-  }, [pendingReviewers]);
+  }, [targetReviewers]);
 
   const handleCopyPingMessage = (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const reviewerHandles = pendingReviewers.length > 0
-      ? pendingReviewers.map((r) => `@${r.login}`).join(' ')
+    const reviewerHandles = targetReviewers.length > 0
+      ? targetReviewers.map((r) => `@${r.login}`).join(' ')
       : 'team';
 
     const prUrl = pr.url || (pr.repository?.nameWithOwner ? `https://github.com/${pr.repository.nameWithOwner}/pull/${pr.number}` : '');

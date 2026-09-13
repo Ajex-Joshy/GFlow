@@ -524,6 +524,10 @@ input {
   color: var(--color-merged-fg);
 }
 
+.gh-state-btn.active.overdue-filter {
+  color: var(--color-danger-fg);
+}
+
 /* PR Row Item (Matches GitHub github.com/pulls list item) */
 .pr-row {
   display: flex;
