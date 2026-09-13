@@ -225,6 +225,12 @@ const PR_FIELDS = `
   labels(first: 5) {
     nodes { name color }
   }
+  assignees(first: 10) {
+    nodes {
+      login
+      avatarUrl
+    }
+  }
   comments {
     totalCount
   }
