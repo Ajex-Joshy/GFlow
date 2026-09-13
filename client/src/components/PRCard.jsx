@@ -9,6 +9,7 @@ import {
   Clock,
   FileCode2,
   Copy,
+  Bell,
 } from 'lucide-react';
 import { getReviewSlaStatus, getCreatedSlaStatus } from '../utils/slaUtils';
 import {
@@ -77,6 +78,41 @@ export default function PRCard({
     return parts.length > 1 ? parts[1] : nameWithOwner;
   }, [pr.repository, selectedOrg]);
   const [copiedCheckout, setCopiedCheckout] = useState(false);
+  const [copiedPing, setCopiedPing] = useState(false);
+
+  // Extract pending reviewers who haven't approved yet
+  const pendingReviewers = useMemo(() => {
+    return pr.reviewers?.filter((r) => r.state !== 'APPROVED') || [];
+  }, [pr.reviewers]);
+
+  const pendingReviewerSummary = useMemo(() => {
+    if (pendingReviewers.length > 0) {
+      return pendingReviewers.map((r) => `@${r.login}`).join(' ');
+    }
+    return 'team';
+  }, [pendingReviewers]);
+
+  const handleCopyPingMessage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const reviewerHandles = pendingReviewers.length > 0
+      ? pendingReviewers.map((r) => `@${r.login}`).join(' ')
+      : 'team';
+
+    const durationText = createdSla?.formattedDuration ? ` (${createdSla.formattedDuration} elapsed)` : '';
+    const message = `Hey ${reviewerHandles}, gentle reminder to review PR #${pr.number}: "${pr.title}"${durationText} when you get a chance! 🙏
+${pr.url}`;
+
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(message).then(() => {
+        setCopiedPing(true);
+        setTimeout(() => setCopiedPing(false), 2500);
+      }).catch((err) => {
+        console.error('Failed to copy ping reminder', err);
+      });
+    }
+  };
 
   const handleCopyCheckout = (e) => {
     e.preventDefault();
@@ -300,15 +336,46 @@ export default function PRCard({
           </span>
         )}
 
-        {/* Author Follow-up / Stalled SLA Indicator (Created PRs) */}
+        {/* 1-Click Ping Reviewers Action Button (Created Stalled / Follow-up PRs) */}
         {isRaisedTab && !isMerged && createdSla && (
-          <span
-            className={`sla-created-chip ${createdSla.status}`}
-            title={createdSla.tooltip}
-          >
-            <Clock size={11} />
-            <span>{createdSla.label}</span>
-          </span>
+          <div className="pr-ping-wrapper">
+            <button
+              type="button"
+              className={`pr-ping-btn ${createdSla.status} ${copiedPing ? 'copied' : ''}`}
+              onClick={handleCopyPingMessage}
+              title={
+                copiedPing
+                  ? 'Copied ping message to clipboard!'
+                  : `Click to copy polite ping reminder for reviewers (${createdSla.tooltip})`
+              }
+              aria-label={`Ping reviewers for PR ${pr.number}`}
+            >
+              {copiedPing ? (
+                <>
+                  <Check size={11} strokeWidth={2.8} />
+                  <span>Ping Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Bell size={11} className="pr-ping-icon" />
+                  <span>
+                    Ping {createdSla.formattedDuration ? `• ${createdSla.formattedDuration}` : 'Reviewers'}
+                  </span>
+                </>
+              )}
+            </button>
+
+            {copiedPing && (
+              <div className="gh-copy-popover ping-popover" role="status" aria-live="polite">
+                <Check size={12} strokeWidth={3} className="gh-copy-popover-check" />
+                <span className="gh-copy-popover-title">Copied reminder:</span>
+                <span className="gh-copy-popover-sample">
+                  &quot;Hey {pendingReviewerSummary}, gentle reminder on PR #{pr.number}...&quot;
+                </span>
+                <div className="gh-copy-popover-arrow" />
+              </div>
+            )}
+          </div>
         )}
 
         {/* Total Comments if not showing unresolved */}

@@ -121,6 +121,7 @@ export function getCreatedSlaStatus(pr, settings = {}) {
     return {
       status: 'stalled',
       label: 'Stalled',
+      formattedDuration,
       tooltip: `No review activity for ${formattedDuration}. High risk of merge conflicts — consider pinging reviewers or reassigning.`,
       elapsedHours,
     };
@@ -128,6 +129,7 @@ export function getCreatedSlaStatus(pr, settings = {}) {
     return {
       status: 'follow-up',
       label: 'Follow-up due',
+      formattedDuration,
       tooltip: `Waiting on review for ${formattedDuration} (exceeded ${nudgeHours}h). Recommended to follow up with reviewers.`,
       elapsedHours,
     };
