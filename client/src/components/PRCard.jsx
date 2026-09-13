@@ -246,29 +246,34 @@ export default function PRCard({
 
       {/* Right Side: Reviewers (Raised tab), SLA Wait Timer (Reviewer tab), Unresolved Comments & Diff stats */}
       <div className="pr-row-right">
-        {/* Reviewers Decision Chips on Right Side (Raised PRs) */}
+        {/* Reviewers Avatar Stack with Micro-Badges on Right Side (Raised PRs) */}
         {isRaisedTab && showReviewerStatus && pr.reviewers?.length > 0 && (
-          <div className="pr-reviewers-chips">
+          <div className="reviewer-avatar-stack" aria-label="Reviewers">
             {pr.reviewers.map((rev) => (
-              <span
+              <div
                 key={rev.login}
-                className={`reviewer-status-chip ${rev.state.toLowerCase()}`}
+                className={`reviewer-avatar-item ${rev.state.toLowerCase()}`}
                 title={getReviewerTooltip(rev, pr)}
               >
-                {rev.avatarUrl && (
-                  <img src={rev.avatarUrl} alt={rev.login} className="reviewer-chip-avatar" />
-                )}
-                <span className="reviewer-chip-name">{rev.login}</span>
-                {rev.state === 'APPROVED' ? (
-                  <Check size={11} strokeWidth={2.8} className="reviewer-status-icon approved" />
-                ) : rev.state === 'CHANGES_REQUESTED' ? (
-                  <X size={11} strokeWidth={2.8} className="reviewer-status-icon changes-requested" />
-                ) : rev.state === 'COMMENTED' ? (
-                  <MessageSquare size={10} className="reviewer-status-icon commented" />
+                {rev.avatarUrl ? (
+                  <img src={rev.avatarUrl} alt={rev.login} className="reviewer-stack-avatar" />
                 ) : (
-                  <Clock size={10} className="reviewer-status-icon pending" />
+                  <div className="reviewer-stack-avatar reviewer-fallback-avatar">
+                    {rev.login?.slice(0, 2).toUpperCase()}
+                  </div>
                 )}
-              </span>
+                <span className={`reviewer-micro-badge ${rev.state.toLowerCase()}`}>
+                  {rev.state === 'APPROVED' ? (
+                    <Check size={8} strokeWidth={3.5} />
+                  ) : rev.state === 'CHANGES_REQUESTED' ? (
+                    <X size={8} strokeWidth={3.5} />
+                  ) : rev.state === 'COMMENTED' ? (
+                    <MessageSquare size={7} strokeWidth={2.5} />
+                  ) : (
+                    <Clock size={7} strokeWidth={2.5} />
+                  )}
+                </span>
+              </div>
             ))}
           </div>
         )}

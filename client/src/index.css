@@ -1524,80 +1524,87 @@ kbd.gh-kbd {
   letter-spacing: 0.03em;
 }
 
-.pr-reviewers-chips {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-}
-
-.reviewer-status-chip {
+/* Overlapping Reviewers Avatar Stack */
+.reviewer-avatar-stack {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.08rem 0.4rem;
-  border-radius: var(--radius-full);
-  font-size: 11px;
-  background-color: var(--color-canvas-subtle);
-  border: 1px solid var(--color-border-default);
-  color: var(--color-fg-muted);
-  line-height: 16px;
-  transition: all 0.15s ease;
-  user-select: none;
+  flex-direction: row;
+  padding: 2px 2px;
 }
 
-.reviewer-status-chip:hover {
-  border-color: var(--color-border-muted);
-  background-color: var(--color-btn-hover-bg);
+.reviewer-avatar-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.16s ease;
 }
 
-.reviewer-chip-avatar {
-  width: 13px;
-  height: 13px;
+.reviewer-avatar-item:not(:first-child) {
+  margin-left: -7px;
+}
+
+.reviewer-avatar-item:hover {
+  z-index: 20;
+  transform: translateY(-2px) scale(1.15);
+}
+
+.reviewer-stack-avatar {
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--color-canvas-default);
+  background-color: var(--color-canvas-subtle);
+  display: block;
 }
 
-.reviewer-chip-name {
-  font-weight: 500;
-  color: var(--color-fg-default);
-}
-
-/* Reviewer Decision Status Highlights */
-.reviewer-status-chip.approved {
-  background-color: rgba(35, 134, 54, 0.1);
-  border-color: rgba(63, 185, 80, 0.3);
-}
-.reviewer-status-chip.approved .reviewer-chip-name {
-  color: var(--color-open-fg);
-}
-.reviewer-status-icon.approved {
-  color: var(--color-open-fg);
-}
-
-.reviewer-status-chip.changes_requested {
-  background-color: rgba(248, 81, 73, 0.1);
-  border-color: rgba(248, 81, 73, 0.3);
-}
-.reviewer-status-chip.changes_requested .reviewer-chip-name {
-  color: var(--color-danger-fg);
-}
-.reviewer-status-icon.changes-requested {
-  color: var(--color-danger-fg);
-}
-
-.reviewer-status-chip.commented {
-  border-color: var(--color-border-muted);
-}
-.reviewer-status-icon.commented {
+.reviewer-fallback-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 600;
   color: var(--color-fg-muted);
+  background-color: var(--color-canvas-subtle);
 }
 
-.reviewer-status-chip.pending {
-  border-color: rgba(210, 153, 34, 0.25);
+/* Micro Status Badges on Reviewer Avatars */
+.reviewer-micro-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--color-canvas-default);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }
-.reviewer-status-icon.pending {
-  color: var(--color-attention-fg);
+
+.reviewer-micro-badge.approved {
+  background-color: #238636;
+  color: #ffffff;
+}
+
+.reviewer-micro-badge.changes_requested {
+  background-color: #da3633;
+  color: #ffffff;
+}
+
+.reviewer-micro-badge.commented {
+  background-color: var(--color-canvas-subtle);
+  color: var(--color-fg-muted);
+  border-color: var(--color-border-default);
+}
+
+.reviewer-micro-badge.pending {
+  background-color: #9e6a03;
+  color: #ffffff;
 }
 
 /* ==========================================================================
