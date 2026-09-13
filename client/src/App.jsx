@@ -212,7 +212,10 @@ export default function App() {
         setUser(null);
         clearClientCache();
       } else if (err.status === 429 || err.message?.toLowerCase().includes('rate limit')) {
-        setFetchError('GitHub API hourly rate limit reached. Cached data remains accessible.');
+        setStaleNotice({
+          isStale: true,
+          staleReason: err.data?.message || err.message || 'GitHub API hourly rate limit reached.',
+        });
       } else {
         setFetchError(err.message || 'Failed to fetch Pull Requests.');
       }
