@@ -270,9 +270,9 @@ export default function MultiFilterModal({
   );
 
   return (
-    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="gh-modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
       <div
-        className="modal-content multi-filter-modal"
+        className="gh-modal multi-filter-modal"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -286,7 +286,7 @@ export default function MultiFilterModal({
           </div>
           <button
             type="button"
-            className="modal-close-btn"
+            className="gh-modal-close-btn"
             onClick={onClose}
             aria-label="Close filters modal"
           >

@@ -2269,8 +2269,8 @@ kbd.gh-kbd {
 }
 
 /* Master-Detail Multi-Filter Modal */
-.multi-filter-modal {
-  width: 740px;
+.gh-modal.multi-filter-modal {
+  width: 760px;
   max-width: 95vw;
   height: 540px;
   max-height: 85vh;
