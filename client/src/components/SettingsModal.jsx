@@ -20,7 +20,7 @@ export default function SettingsModal({
   const handleToggleBots = () => {
     const updated = {
       ...currentSettings,
-      ignoreBots: !currentSettings.ignoreBots,
+      ignoreBots: !Boolean(currentSettings.ignoreBots),
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -40,7 +40,7 @@ export default function SettingsModal({
   const handleToggleLabels = () => {
     const updated = {
       ...currentSettings,
-      showLabels: currentSettings.showLabels === false ? true : false,
+      showLabels: !Boolean(currentSettings.showLabels),
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -50,7 +50,7 @@ export default function SettingsModal({
   const handleToggleDetailedTimestamp = () => {
     const updated = {
       ...currentSettings,
-      showDetailedTimestamp: currentSettings.showDetailedTimestamp === false ? true : false,
+      showDetailedTimestamp: !Boolean(currentSettings.showDetailedTimestamp),
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -70,7 +70,7 @@ export default function SettingsModal({
   const handleToggleReviewWaitTimer = () => {
     const updated = {
       ...currentSettings,
-      showReviewWaitTimer: currentSettings.showReviewWaitTimer === false ? true : false,
+      showReviewWaitTimer: !Boolean(currentSettings.showReviewWaitTimer),
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -80,7 +80,7 @@ export default function SettingsModal({
   const handleToggleReviewerStatus = () => {
     const updated = {
       ...currentSettings,
-      showReviewerStatus: currentSettings.showReviewerStatus === false ? true : false,
+      showReviewerStatus: !Boolean(currentSettings.showReviewerStatus),
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -90,7 +90,7 @@ export default function SettingsModal({
   const handleToggleDiffStats = () => {
     const updated = {
       ...currentSettings,
-      showDiffStats: currentSettings.showDiffStats === false ? true : false,
+      showDiffStats: !Boolean(currentSettings.showDiffStats),
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -219,7 +219,7 @@ export default function SettingsModal({
                   <label className="gh-toggle-label">
                     <input
                       type="checkbox"
-                      checked={currentSettings.ignoreBots}
+                      checked={Boolean(currentSettings.ignoreBots)}
                       onChange={handleToggleBots}
                     />
                     <span className="gh-toggle-slider" />
@@ -262,7 +262,7 @@ export default function SettingsModal({
                     <label className="gh-toggle-label">
                       <input
                         type="checkbox"
-                        checked={currentSettings.showLabels !== false}
+                        checked={Boolean(currentSettings.showLabels)}
                         onChange={handleToggleLabels}
                       />
                       <span className="gh-toggle-slider" />
@@ -279,7 +279,7 @@ export default function SettingsModal({
                     <label className="gh-toggle-label">
                       <input
                         type="checkbox"
-                        checked={currentSettings.showDetailedTimestamp !== false}
+                        checked={Boolean(currentSettings.showDetailedTimestamp)}
                         onChange={handleToggleDetailedTimestamp}
                       />
                       <span className="gh-toggle-slider" />
@@ -313,7 +313,7 @@ export default function SettingsModal({
                     <label className="gh-toggle-label">
                       <input
                         type="checkbox"
-                        checked={currentSettings.showReviewWaitTimer !== false}
+                        checked={Boolean(currentSettings.showReviewWaitTimer)}
                         onChange={handleToggleReviewWaitTimer}
                       />
                       <span className="gh-toggle-slider" />
@@ -330,7 +330,7 @@ export default function SettingsModal({
                     <label className="gh-toggle-label">
                       <input
                         type="checkbox"
-                        checked={currentSettings.showReviewerStatus !== false}
+                        checked={Boolean(currentSettings.showReviewerStatus)}
                         onChange={handleToggleReviewerStatus}
                       />
                       <span className="gh-toggle-slider" />
@@ -347,7 +347,7 @@ export default function SettingsModal({
                     <label className="gh-toggle-label">
                       <input
                         type="checkbox"
-                        checked={currentSettings.showDiffStats !== false}
+                        checked={Boolean(currentSettings.showDiffStats)}
                         onChange={handleToggleDiffStats}
                       />
                       <span className="gh-toggle-slider" />

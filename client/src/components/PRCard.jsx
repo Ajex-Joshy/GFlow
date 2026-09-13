@@ -37,12 +37,12 @@ function getReviewerTooltip(rev, pr) {
 export default function PRCard({
   pr,
   tabType,
-  showLabels = true,
-  showDetailedTimestamp = true,
+  showLabels = false,
+  showDetailedTimestamp = false,
   showCIStatus = true,
-  showReviewWaitTimer = true,
-  showReviewerStatus = true,
-  showDiffStats = true,
+  showReviewWaitTimer = false,
+  showReviewerStatus = false,
+  showDiffStats = false,
   isSelected = false,
   cardRef = null,
 }) {

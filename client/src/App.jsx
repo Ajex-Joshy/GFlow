@@ -828,12 +828,12 @@ export default function App() {
                   isSelected={idx === focusedIndex}
                   pr={pr}
                   tabType={activeTab}
-                  showLabels={settings.showLabels !== false}
-                  showDetailedTimestamp={settings.showDetailedTimestamp !== false}
+                  showLabels={Boolean(settings.showLabels)}
+                  showDetailedTimestamp={Boolean(settings.showDetailedTimestamp)}
                   showCIStatus={settings.showCIStatus !== false}
-                  showReviewWaitTimer={settings.showReviewWaitTimer !== false}
-                  showReviewerStatus={settings.showReviewerStatus !== false}
-                  showDiffStats={settings.showDiffStats !== false}
+                  showReviewWaitTimer={Boolean(settings.showReviewWaitTimer)}
+                  showReviewerStatus={Boolean(settings.showReviewerStatus)}
+                  showDiffStats={Boolean(settings.showDiffStats)}
                 />
               ))}
             </div>

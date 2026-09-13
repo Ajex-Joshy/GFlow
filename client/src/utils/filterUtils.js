@@ -6,16 +6,16 @@ const SETTINGS_KEY = 'gflow_settings';
 const LEGACY_SETTINGS_KEY = 'octopulse_settings';
 
 export const DEFAULT_SETTINGS = {
-  ignoreBots: true,
+  ignoreBots: false,
   excludedRepos: [],
   defaultOrg: 'all',
   showApprovedTab: true,
-  showLabels: true,
-  showDetailedTimestamp: true,
+  showLabels: false,
+  showDetailedTimestamp: false,
   showCIStatus: true,
-  showReviewWaitTimer: true,
-  showReviewerStatus: true,
-  showDiffStats: true,
+  showReviewWaitTimer: false,
+  showReviewerStatus: false,
+  showDiffStats: false,
 };
 
 /**
