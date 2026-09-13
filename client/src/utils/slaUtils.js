@@ -62,6 +62,7 @@ export function formatSlaDuration(hours) {
  * Determines Review Request SLA status for PRs waiting on user review.
  */
 export function getReviewSlaStatus(pr, settings = {}) {
+  if (settings.enableSlaTracking === false) return null;
   const dateStr = pr.reviewRequestedAt || pr.createdAt;
   if (!dateStr) return null;
 
@@ -99,6 +100,7 @@ export function getReviewSlaStatus(pr, settings = {}) {
  * Determines Author Follow-up status for PRs created by the user that are awaiting reviewer action.
  */
 export function getCreatedSlaStatus(pr, settings = {}) {
+  if (settings.enableSlaTracking === false) return null;
   if (!pr || pr.state === 'MERGED' || pr.isDraft) return null;
 
   // If already approved, author is not blocked waiting for initial review

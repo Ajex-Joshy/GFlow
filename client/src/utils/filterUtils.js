@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   showDiffStats: false,
 
   // Review SLA & Urgency Configuration (Hours)
+  enableSlaTracking: true,
   reviewWarningHours: 12,
   reviewOverdueHours: 24,
   createdNudgeHours: 24,

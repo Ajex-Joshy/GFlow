@@ -322,26 +322,38 @@ export default function App() {
 
   // Tab-adaptive sort options
   const currentSortOptions = useMemo(() => {
+    const isSlaEnabled = settings.enableSlaTracking !== false;
+
     if (activeTab === 'reviewer') {
-      return [
+      const options = [
         { value: 'recently-updated', label: 'Recently updated' },
-        { value: 'sla-urgency', label: 'SLA Urgency (Most Overdue)' },
+      ];
+      if (isSlaEnabled) {
+        options.push({ value: 'sla-urgency', label: 'SLA Urgency (Most Overdue)' });
+      }
+      options.push(
         { value: 'longest-waiting', label: 'Longest waiting for review' },
         { value: 'newest', label: 'Newest created' },
         { value: 'oldest', label: 'Oldest created' },
         { value: 'smallest-diff', label: 'Smallest diff first' },
         { value: 'most-comments', label: 'Most comments' },
-      ];
+      );
+      return options;
     }
     if (activeTab === 'raised') {
-      return [
+      const options = [
         { value: 'recently-updated', label: 'Recently updated' },
-        { value: 'sla-urgency', label: 'SLA Urgency (Most Stalled)' },
+      ];
+      if (isSlaEnabled) {
+        options.push({ value: 'sla-urgency', label: 'SLA Urgency (Most Stalled)' });
+      }
+      options.push(
         { value: 'most-unresolved', label: 'Most unresolved comments' },
         { value: 'newest', label: 'Newest created' },
         { value: 'oldest', label: 'Oldest created' },
         { value: 'most-comments', label: 'Most comments' },
-      ];
+      );
+      return options;
     }
     return [
       { value: 'recently-updated', label: 'Recently updated' },
@@ -349,7 +361,7 @@ export default function App() {
       { value: 'oldest', label: 'Oldest created' },
       { value: 'most-comments', label: 'Most comments' },
     ];
-  }, [activeTab]);
+  }, [activeTab, settings.enableSlaTracking]);
 
   // Reset selectedRepo if not present in the newly selected organization
   useEffect(() => {

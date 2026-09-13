@@ -97,6 +97,16 @@ export default function SettingsModal({
     triggerSavedToast();
   };
 
+  const handleToggleSlaTracking = () => {
+    const updated = {
+      ...currentSettings,
+      enableSlaTracking: currentSettings.enableSlaTracking !== false ? false : true,
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+    triggerSavedToast();
+  };
+
   const handleUpdateSlaThreshold = (key, val) => {
     const num = Math.max(1, parseInt(val, 10) || 1);
     const updated = {
@@ -404,12 +414,23 @@ export default function SettingsModal({
                 <Clock size={16} />
               </div>
               <div style={{ flex: 1 }}>
-                <h3 className="settings-heading">Review SLAs & Urgency Deadlines</h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h3 className="settings-heading">Review SLAs & Urgency Deadlines</h3>
+                  <label className="gh-toggle-label" title={currentSettings.enableSlaTracking !== false ? 'Disable SLA tracking' : 'Enable SLA tracking'}>
+                    <input
+                      type="checkbox"
+                      checked={currentSettings.enableSlaTracking !== false}
+                      onChange={handleToggleSlaTracking}
+                    />
+                    <span className="gh-toggle-slider" />
+                  </label>
+                </div>
                 <p className="settings-desc">
                   Set target turnaround times for code reviews. GFlow will dynamically flag PRs approaching their deadline or stalled in review.
                 </p>
 
-                <div className="sla-config-grid">
+                <div className={`sla-config-content ${currentSettings.enableSlaTracking === false ? 'disabled' : ''}`}>
+                  <div className="sla-config-grid">
                   {/* Card 1: Review Requests SLA */}
                   <div className="sla-config-card">
                     <span className="sla-config-card-title">
@@ -514,7 +535,8 @@ export default function SettingsModal({
                 </div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
           {/* Section 5: Excluded Repositories */}
           <section className="settings-section">

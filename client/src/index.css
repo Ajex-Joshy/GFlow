@@ -1829,6 +1829,17 @@ kbd.gh-kbd {
 }
 
 /* SLA Settings Configuration Section */
+.sla-config-content {
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.sla-config-content.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  filter: grayscale(0.6);
+  user-select: none;
+}
+
 .sla-config-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
