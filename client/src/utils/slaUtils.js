@@ -103,16 +103,20 @@ export function getCreatedSlaStatus(pr, settings = {}) {
   if (settings.enableSlaTracking === false) return null;
   if (!pr || pr.state === 'MERGED' || pr.isDraft) return null;
 
-  // If already approved, author is not blocked waiting for initial review
-  const hasApproved = pr.reviewers?.some((r) => r.state === 'APPROVED');
-  if (hasApproved) return null;
-
   const excludedDays = settings.slaExcludedDays ?? (settings.pauseSlaOnWeekends === false ? [] : [0, 6]);
-  const nudgeHours = Number(settings.createdNudgeHours) || 24;
+  // Use configured review overdue / nudge hours
+  const nudgeHours = Number(settings.reviewOverdueHours) || Number(settings.createdNudgeHours) || 24;
   const stalledHours = Number(settings.createdStalledHours) || 48;
 
-  // Measure wait time from the oldest pending reviewer request, or fallback to PR creation
+  const totalReviewers = pr.reviewers?.length || 0;
   const pendingReviewers = pr.reviewers?.filter((r) => r.state === 'PENDING' || r.state !== 'APPROVED') || [];
+
+  // If reviewers were requested and ALL have approved, PR is not blocked on review
+  if (totalReviewers > 0 && pendingReviewers.length === 0) {
+    return null;
+  }
+
+  // Measure wait time from the oldest pending reviewer request, or fallback to PR creation
   let referenceDate = pr.createdAt;
 
   if (pendingReviewers.length > 0) {
