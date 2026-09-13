@@ -2,7 +2,8 @@
  * Settings and Bot Filtering Utilities
  */
 
-const SETTINGS_KEY = 'octopulse_settings';
+const SETTINGS_KEY = 'gflow_settings';
+const LEGACY_SETTINGS_KEY = 'octopulse_settings';
 
 export const DEFAULT_SETTINGS = {
   ignoreBots: true,
@@ -18,11 +19,11 @@ export const DEFAULT_SETTINGS = {
 };
 
 /**
- * Load settings from localStorage with fallback to defaults
+ * Load settings from localStorage with fallback to defaults (with automatic migration from legacy key)
  */
 export function loadSettings() {
   try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
+    const raw = localStorage.getItem(SETTINGS_KEY) || localStorage.getItem(LEGACY_SETTINGS_KEY);
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw);
     return {
@@ -35,11 +36,12 @@ export function loadSettings() {
 }
 
 /**
- * Save settings to localStorage
+ * Save settings to localStorage and clean up any legacy key
  */
 export function saveSettings(settings) {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    localStorage.removeItem(LEGACY_SETTINGS_KEY);
   } catch (err) {
     console.error('Failed to save settings:', err);
   }
