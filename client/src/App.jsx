@@ -847,6 +847,7 @@ export default function App() {
                   isSelected={idx === focusedIndex}
                   pr={pr}
                   tabType={activeTab}
+                  selectedOrg={selectedOrg}
                   settings={settings}
                   showLabels={Boolean(settings.showLabels)}
                   showDetailedTimestamp={Boolean(settings.showDetailedTimestamp)}

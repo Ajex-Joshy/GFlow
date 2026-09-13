@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   GitPullRequest,
   GitPullRequestDraft,
@@ -39,6 +39,7 @@ function getReviewerTooltip(rev, pr) {
 export default function PRCard({
   pr,
   tabType,
+  selectedOrg = 'all',
   showLabels = false,
   showDetailedTimestamp = false,
   showCIStatus = true,
@@ -57,6 +58,24 @@ export default function PRCard({
   const reviewWaitTimerFormatted = formatDurationCompact(pr.reviewRequestedAt || pr.createdAt);
   const reviewSla = isReviewerTab ? getReviewSlaStatus(pr, settings) : null;
   const createdSla = isRaisedTab ? getCreatedSlaStatus(pr, settings) : null;
+
+  // When a specific single organization or personal is selected, omit duplicate owner name
+  const repoDisplayName = useMemo(() => {
+    const nameWithOwner = pr.repository?.nameWithOwner;
+    if (!nameWithOwner) return pr.repository?.name || 'repository';
+
+    // If "All Organizations & Personal" is selected, show full "owner/repo"
+    if (selectedOrg === 'all') {
+      return nameWithOwner;
+    }
+
+    // Single organization or personal selected: show repo name only
+    if (pr.repository?.name) {
+      return pr.repository.name;
+    }
+    const parts = nameWithOwner.split('/');
+    return parts.length > 1 ? parts[1] : nameWithOwner;
+  }, [pr.repository, selectedOrg]);
   const [copiedCheckout, setCopiedCheckout] = useState(false);
 
   const handleCopyCheckout = (e) => {
@@ -153,9 +172,9 @@ export default function PRCard({
             target="_blank"
             rel="noopener noreferrer"
             className="repo-link"
-            title="Repository"
+            title={pr.repository?.nameWithOwner || 'Repository'}
           >
-            {pr.repository?.nameWithOwner || 'repository'}
+            {repoDisplayName}
           </a>
 
           <span>•</span>
