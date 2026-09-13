@@ -466,6 +466,7 @@ export default function App() {
   useEffect(() => {
     setOnlyUnresolved(false);
     setOnlyOverdue(false);
+    handleResetMultiFilters();
     const isSortAvailable = currentSortOptions.some((opt) => opt.value === sortOrder);
     if (!isSortAvailable) {
       setSortOrder('recently-updated');
@@ -1126,6 +1127,7 @@ export default function App() {
         filters={activeMultiFilters}
         onFiltersChange={setActiveMultiFilters}
         onResetFilters={handleResetMultiFilters}
+        tabType={activeTab}
         prPool={
           activeTab === 'raised'
             ? (raisedStateFilter === 'merged' ? filteredData.raisedMerged : filteredData.raised)

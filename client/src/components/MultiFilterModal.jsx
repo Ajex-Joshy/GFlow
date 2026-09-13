@@ -24,6 +24,7 @@ export default function MultiFilterModal({
   onResetFilters,
   prPool = [],
   settings = {},
+  tabType = 'team',
 }) {
   const [activeCategory, setActiveCategory] = useState('repositories');
   const [categorySearch, setCategorySearch] = useState('');
@@ -228,7 +229,7 @@ export default function MultiFilterModal({
 
   if (!isOpen) return null;
 
-  const categories = [
+  const allCategories = [
     {
       id: 'repositories',
       label: 'Repositories',
@@ -242,6 +243,7 @@ export default function MultiFilterModal({
       icon: User,
       count: filters.authors?.length || 0,
       totalAvailable: categoryData.authors.length,
+      hideInTabs: ['raised'], // You authored 100% of PRs in Created tab!
     },
     {
       id: 'assignees',
@@ -249,6 +251,7 @@ export default function MultiFilterModal({
       icon: Users,
       count: filters.assignees?.length || 0,
       totalAvailable: categoryData.assignees.length,
+      hideIfZero: true, // Only show if at least 1 PR has an assignee
     },
     {
       id: 'reviewers',
@@ -256,6 +259,7 @@ export default function MultiFilterModal({
       icon: Eye,
       count: filters.reviewers?.length || 0,
       totalAvailable: categoryData.reviewers.length,
+      hideInTabs: ['reviewer'], // You are the requested reviewer on 100% of these!
     },
     {
       id: 'reviewStatus',
@@ -263,6 +267,7 @@ export default function MultiFilterModal({
       icon: CheckCircle2,
       count: filters.reviewStatus?.length || 0,
       totalAvailable: categoryData.reviewStatus.length,
+      hideInTabs: ['reviewer'], // Relevant when author/lead tracks external reviewer decisions
     },
     {
       id: 'labels',
@@ -270,6 +275,7 @@ export default function MultiFilterModal({
       icon: Tag,
       count: filters.labels?.length || 0,
       totalAvailable: categoryData.labels.length,
+      hideIfZero: true, // Only show if labels exist
     },
     {
       id: 'slaUrgency',
@@ -279,6 +285,19 @@ export default function MultiFilterModal({
       totalAvailable: categoryData.slaUrgency.length,
     },
   ];
+
+  const categories = allCategories.filter((cat) => {
+    if (cat.hideInTabs && cat.hideInTabs.includes(tabType)) return false;
+    if (cat.hideIfZero && cat.totalAvailable === 0) return false;
+    return true;
+  });
+
+  // Ensure activeCategory always points to an active visible category
+  useEffect(() => {
+    if (categories.length > 0 && !categories.some((c) => c.id === activeCategory)) {
+      setActiveCategory(categories[0].id);
+    }
+  }, [categories, activeCategory]);
 
   const currentOptions = categoryData[activeCategory] || [];
   const selectedInCurrentCategory = filters[activeCategory] || [];
