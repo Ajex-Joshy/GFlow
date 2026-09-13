@@ -100,15 +100,36 @@ export default function PRCard({
       ? pendingReviewers.map((r) => `@${r.login}`).join(' ')
       : 'team';
 
+    const prUrl = pr.url || (pr.repository?.nameWithOwner ? `https://github.com/${pr.repository.nameWithOwner}/pull/${pr.number}` : '');
     const durationText = createdSla?.formattedDuration ? ` (${createdSla.formattedDuration} elapsed)` : '';
-    const message = `Hey ${reviewerHandles}, gentle reminder to review PR #${pr.number}: "${pr.title}"${durationText} when you get a chance! 🙏
-${pr.url}`;
 
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(message).then(() => {
-        setCopiedPing(true);
-        setTimeout(() => setCopiedPing(false), 2500);
-      }).catch((err) => {
+    // Plain text format with direct URL
+    const plainText = `Hey ${reviewerHandles}, gentle reminder to review PR #${pr.number}: "${pr.title}"${durationText} when you get a chance.\n${prUrl}`;
+
+    // Rich text HTML format (creates a native clickable hyperlink in Slack, Teams, Email, Docs)
+    const htmlText = `Hey ${reviewerHandles}, gentle reminder to review <a href="${prUrl}">PR #${pr.number}: &quot;${pr.title}&quot;</a>${durationText} when you get a chance.`;
+
+    const onSuccess = () => {
+      setCopiedPing(true);
+      setTimeout(() => setCopiedPing(false), 2500);
+    };
+
+    if (navigator.clipboard?.write && typeof window.ClipboardItem !== 'undefined') {
+      const textBlob = new Blob([plainText], { type: 'text/plain' });
+      const htmlBlob = new Blob([htmlText], { type: 'text/html' });
+
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'text/plain': textBlob,
+          'text/html': htmlBlob,
+        }),
+      ]).then(onSuccess).catch(() => {
+        navigator.clipboard.writeText(plainText).then(onSuccess).catch((err) => {
+          console.error('Failed to copy ping reminder', err);
+        });
+      });
+    } else if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(plainText).then(onSuccess).catch((err) => {
         console.error('Failed to copy ping reminder', err);
       });
     }
