@@ -1330,6 +1330,60 @@ kbd.gh-kbd {
   letter-spacing: 0.04em;
 }
 
+/* SLA Status Urgency Indicators */
+.sla-timer-chip.due-soon {
+  color: var(--color-attention-fg);
+  background-color: var(--color-attention-muted);
+  border-color: var(--color-attention-border);
+}
+
+.sla-timer-chip.due-soon .sla-timer-icon {
+  color: var(--color-attention-fg);
+}
+
+.sla-timer-chip.overdue {
+  color: var(--color-danger-fg);
+  background-color: var(--color-danger-muted);
+  border-color: var(--color-danger-border);
+  font-weight: 600;
+}
+
+.sla-timer-chip.overdue .sla-timer-icon {
+  color: var(--color-danger-fg);
+}
+
+/* Author SLA Chips on Created PRs */
+.sla-created-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 6px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.sla-created-chip.follow-up {
+  color: var(--color-attention-fg);
+  background-color: var(--color-attention-muted);
+  border: 1px solid var(--color-attention-border);
+}
+
+.sla-created-chip.stalled {
+  color: var(--color-danger-fg);
+  background-color: var(--color-danger-muted);
+  border: 1px solid var(--color-danger-border);
+  font-weight: 600;
+}
+
+/* Subtle border indicator for overdue review requests */
+.pr-row.sla-overdue {
+  border-left-color: var(--color-danger-fg);
+  border-left-width: 3px;
+}
+
 /* ==========================================================================
    Reviewers Decision Line on Raised PRs
    ========================================================================== */
@@ -1723,4 +1777,69 @@ kbd.gh-kbd {
     width: 100%;
   }
 
+}
+
+/* SLA Settings Configuration Section */
+.sla-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.sla-config-card {
+  background-color: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sla-config-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-fg-default);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sla-inputs-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.sla-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
+
+.sla-field-input-box {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sla-number-input {
+  width: 64px;
+  padding: 0.25rem 0.4rem;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  text-align: center;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-fg-default);
+}
+
+.sla-number-input:focus {
+  border-color: var(--color-accent-emphasis);
+  outline: none;
 }

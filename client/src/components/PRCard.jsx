@@ -9,6 +9,7 @@ import {
   Clock,
   FileCode2,
 } from 'lucide-react';
+import { getReviewSlaStatus, getCreatedSlaStatus } from '../utils/slaUtils';
 import {
   formatPRTimestamp,
   formatRelativeOnly,
@@ -43,6 +44,7 @@ export default function PRCard({
   showReviewWaitTimer = false,
   showReviewerStatus = false,
   showDiffStats = false,
+  settings = {},
   isSelected = false,
   cardRef = null,
 }) {
@@ -52,9 +54,11 @@ export default function PRCard({
   const hasUnresolvedComments = (pr.unresolvedCommentsCount || 0) > 0;
   const createdFormatted = formatPRTimestamp(pr.createdAt);
   const reviewWaitTimerFormatted = formatDurationCompact(pr.reviewRequestedAt || pr.createdAt);
+  const reviewSla = isReviewerTab ? getReviewSlaStatus(pr, settings) : null;
+  const createdSla = isRaisedTab ? getCreatedSlaStatus(pr, settings) : null;
 
   return (
-    <div className={`pr-row ${isSelected ? 'is-selected' : ''}`} ref={cardRef}>
+    <div className={`pr-row ${isSelected ? 'is-selected' : ''} ${reviewSla?.status === 'overdue' ? 'sla-overdue' : ''}`} ref={cardRef}>
       {/* GitHub PR Status Icon (Green for open, purple for merged, gray for draft) */}
       <div className={`pr-status-icon ${isMerged ? 'merged' : pr.isDraft ? 'draft' : 'open'}`}>
         {isMerged ? (
@@ -211,18 +215,18 @@ export default function PRCard({
           </div>
         )}
 
-        {/* Right-aligned SLA Wait Timer (Reviewer Queue) */}
-        {isReviewerTab && showReviewWaitTimer && (
+        {/* Right-aligned Dynamic SLA Wait Timer (Reviewer Queue) */}
+        {isReviewerTab && showReviewWaitTimer && reviewSla && (
           <div
-            className="sla-timer-chip"
-            title={`Review requested ${formatDurationAgo(pr.reviewRequestedAt || pr.createdAt)}`}
+            className={`sla-timer-chip ${reviewSla.status}`}
+            title={reviewSla.tooltip}
           >
             <Clock size={12} className="sla-timer-icon" />
-            <span className="sla-timer-time">{reviewWaitTimerFormatted}</span>
+            <span className="sla-timer-time">{reviewSla.label}</span>
           </div>
         )}
 
-        {/* Flag unresolved comments only */}
+        {/* Flag unresolved comments */}
         {isRaisedTab && !isMerged && hasUnresolvedComments && (
           <span
             className="unresolved-badge"
@@ -230,6 +234,17 @@ export default function PRCard({
           >
             <MessageSquare size={12} />
             <span>{pr.unresolvedCommentsCount} unresolved</span>
+          </span>
+        )}
+
+        {/* Author Follow-up / Stalled SLA Indicator (Created PRs) */}
+        {isRaisedTab && !isMerged && createdSla && (
+          <span
+            className={`sla-created-chip ${createdSla.status}`}
+            title={createdSla.tooltip}
+          >
+            <Clock size={11} />
+            <span>{createdSla.label}</span>
           </span>
         )}
 

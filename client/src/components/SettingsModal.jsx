@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building2, Bot, Ban, Plus, Trash2, Check, Tag } from 'lucide-react';
+import { X, Building2, Bot, Ban, Plus, Trash2, Check, Tag, Clock } from 'lucide-react';
 
 export default function SettingsModal({
   isOpen,
@@ -91,6 +91,26 @@ export default function SettingsModal({
     const updated = {
       ...currentSettings,
       showDiffStats: !Boolean(currentSettings.showDiffStats),
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+    triggerSavedToast();
+  };
+
+  const handleUpdateSlaThreshold = (key, val) => {
+    const num = Math.max(1, parseInt(val, 10) || 1);
+    const updated = {
+      ...currentSettings,
+      [key]: num,
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+  };
+
+  const handleToggleWeekendPause = () => {
+    const updated = {
+      ...currentSettings,
+      pauseSlaOnWeekends: currentSettings.pauseSlaOnWeekends === false ? true : false,
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -362,7 +382,118 @@ export default function SettingsModal({
             </div>
           </section>
 
-          {/* Section 4: Excluded Repositories */}
+          {/* Section 4: Review SLAs & Urgency Deadlines */}
+          <section className="settings-section">
+            <div className="settings-section-header">
+              <div className="settings-section-icon">
+                <Clock size={16} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 className="settings-heading">Review SLAs & Urgency Deadlines</h3>
+                <p className="settings-desc">
+                  Set target turnaround times for code reviews. GFlow will dynamically flag PRs approaching their deadline or stalled in review.
+                </p>
+
+                <div className="sla-config-grid">
+                  {/* Card 1: Review Requests SLA */}
+                  <div className="sla-config-card">
+                    <span className="sla-config-card-title">
+                      Review Requests (Waiting on Me)
+                    </span>
+                    <div className="sla-inputs-group">
+                      <div className="sla-field-row">
+                        <span>🟡 Warning (Due Soon):</span>
+                        <div className="sla-field-input-box">
+                          <input
+                            type="number"
+                            min="1"
+                            max="168"
+                            className="sla-number-input"
+                            value={currentSettings.reviewWarningHours ?? 12}
+                            onChange={(e) => handleUpdateSlaThreshold('reviewWarningHours', e.target.value)}
+                          />
+                          <span>hours</span>
+                        </div>
+                      </div>
+                      <div className="sla-field-row">
+                        <span>🔴 Overdue Deadline:</span>
+                        <div className="sla-field-input-box">
+                          <input
+                            type="number"
+                            min="1"
+                            max="168"
+                            className="sla-number-input"
+                            value={currentSettings.reviewOverdueHours ?? 24}
+                            onChange={(e) => handleUpdateSlaThreshold('reviewOverdueHours', e.target.value)}
+                          />
+                          <span>hours</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Created PRs Author SLA */}
+                  <div className="sla-config-card">
+                    <span className="sla-config-card-title">
+                      Created PRs (Waiting on Reviewers)
+                    </span>
+                    <div className="sla-inputs-group">
+                      <div className="sla-field-row">
+                        <span>🟡 Follow-up Nudge:</span>
+                        <div className="sla-field-input-box">
+                          <input
+                            type="number"
+                            min="1"
+                            max="168"
+                            className="sla-number-input"
+                            value={currentSettings.createdNudgeHours ?? 24}
+                            onChange={(e) => handleUpdateSlaThreshold('createdNudgeHours', e.target.value)}
+                          />
+                          <span>hours</span>
+                        </div>
+                      </div>
+                      <div className="sla-field-row">
+                        <span>🔴 Stalled Alert:</span>
+                        <div className="sla-field-input-box">
+                          <input
+                            type="number"
+                            min="1"
+                            max="168"
+                            className="sla-number-input"
+                            value={currentSettings.createdStalledHours ?? 48}
+                            onChange={(e) => handleUpdateSlaThreshold('createdStalledHours', e.target.value)}
+                          />
+                          <span>hours</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Weekend Pause Toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '0.85rem', borderTop: '1px solid var(--color-border-subtle)' }}>
+                  <div>
+                    <h4 style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-fg-default)' }}>
+                      Pause SLA Timers on Weekends
+                    </h4>
+                    <p style={{ fontSize: '11px', color: 'var(--color-fg-muted)', marginTop: '0.2rem' }}>
+                      Exclude Saturday and Sunday hours from turnaround calculations so Friday PRs do not trigger false alarms on Monday.
+                    </p>
+                  </div>
+                  <label className="gh-toggle-label">
+                    <input
+                      type="checkbox"
+                      checked={currentSettings.pauseSlaOnWeekends !== false}
+                      onChange={handleToggleWeekendPause}
+                    />
+                    <span className="gh-toggle-slider" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 5: Excluded Repositories */}
           <section className="settings-section">
             <div className="settings-section-header">
               <div className="settings-section-icon">

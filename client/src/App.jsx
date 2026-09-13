@@ -320,6 +320,7 @@ export default function App() {
     if (activeTab === 'reviewer') {
       return [
         { value: 'recently-updated', label: 'Recently updated' },
+        { value: 'sla-urgency', label: 'SLA Urgency (Most Overdue)' },
         { value: 'longest-waiting', label: 'Longest waiting for review' },
         { value: 'newest', label: 'Newest created' },
         { value: 'oldest', label: 'Oldest created' },
@@ -330,6 +331,7 @@ export default function App() {
     if (activeTab === 'raised') {
       return [
         { value: 'recently-updated', label: 'Recently updated' },
+        { value: 'sla-urgency', label: 'SLA Urgency (Most Stalled)' },
         { value: 'most-unresolved', label: 'Most unresolved comments' },
         { value: 'newest', label: 'Newest created' },
         { value: 'oldest', label: 'Oldest created' },
@@ -392,11 +394,12 @@ export default function App() {
     // Sorting algorithms
     const sorted = [...list];
     switch (sortOrder) {
+      case 'sla-urgency':
       case 'longest-waiting':
         sorted.sort((a, b) => {
           const timeA = new Date(a.reviewRequestedAt || a.createdAt).getTime();
           const timeB = new Date(b.reviewRequestedAt || b.createdAt).getTime();
-          return timeA - timeB; // Oldest review wait first
+          return timeA - timeB; // Oldest review wait / most overdue first
         });
         break;
       case 'most-unresolved':
@@ -828,6 +831,7 @@ export default function App() {
                   isSelected={idx === focusedIndex}
                   pr={pr}
                   tabType={activeTab}
+                  settings={settings}
                   showLabels={Boolean(settings.showLabels)}
                   showDetailedTimestamp={Boolean(settings.showDetailedTimestamp)}
                   showCIStatus={settings.showCIStatus !== false}

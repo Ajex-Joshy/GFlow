@@ -16,6 +16,13 @@ export const DEFAULT_SETTINGS = {
   showReviewWaitTimer: false,
   showReviewerStatus: false,
   showDiffStats: false,
+
+  // Review SLA & Urgency Configuration (Hours)
+  reviewWarningHours: 12,
+  reviewOverdueHours: 24,
+  createdNudgeHours: 24,
+  createdStalledHours: 48,
+  pauseSlaOnWeekends: true,
 };
 
 /**
