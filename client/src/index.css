@@ -571,10 +571,59 @@ input {
   text-decoration: underline;
 }
 
+.pr-number-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .pr-number-label {
   color: var(--color-fg-muted);
   font-size: 13px;
   font-weight: 400;
+}
+
+.gh-pr-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 1px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-fg-muted);
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  line-height: 1;
+}
+
+.pr-row:hover .gh-pr-copy-btn,
+.pr-row:focus-within .gh-pr-copy-btn,
+.gh-pr-copy-btn.copied {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.gh-pr-copy-btn:hover {
+  background-color: var(--color-btn-hover-bg);
+  border-color: var(--color-border-default);
+  color: var(--color-fg-default);
+}
+
+.gh-pr-copy-btn.copied {
+  background-color: var(--color-success-subtle);
+  border-color: var(--color-success-emphasis);
+  color: var(--color-success-fg);
+  font-weight: 500;
+}
+
+.gh-pr-copy-btn .copied-text {
+  font-size: 10px;
+  line-height: 1;
 }
 
 .gh-label {

@@ -15,6 +15,7 @@ export default function Tabs({ activeTab, onTabChange, counts = {}, showApproved
       icon: GitPullRequest,
       count: counts.raised || 0,
       unresolvedCount: counts.totalUnresolvedRaisedComments || 0,
+      unresolvedPRsCount: counts.unresolvedRaisedPRsCount || 0,
     },
     {
       id: 'approved',
@@ -43,12 +44,12 @@ export default function Tabs({ activeTab, onTabChange, counts = {}, showApproved
             <span>{tab.label}</span>
             <span className="gh-counter">{tab.count}</span>
 
-            {tab.id === 'raised' && tab.unresolvedCount > 0 && (
+            {tab.id === 'raised' && tab.unresolvedPRsCount > 0 && (
               <span
                 className="unresolved-counter-pill"
-                title={`${tab.unresolvedCount} unresolved comment thread${tab.unresolvedCount > 1 ? 's' : ''}`}
+                title={`${tab.unresolvedPRsCount} open PR${tab.unresolvedPRsCount > 1 ? 's have' : ' has'} ${tab.unresolvedCount} unresolved comment thread${tab.unresolvedCount > 1 ? 's' : ''}`}
               >
-                {tab.unresolvedCount} unresolved
+                {tab.unresolvedPRsCount} unresolved
               </span>
             )}
           </button>

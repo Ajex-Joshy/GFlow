@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   GitPullRequest,
   GitPullRequestDraft,
@@ -8,6 +8,7 @@ import {
   X,
   Clock,
   FileCode2,
+  Copy,
 } from 'lucide-react';
 import { getReviewSlaStatus, getCreatedSlaStatus } from '../utils/slaUtils';
 import {
@@ -56,6 +57,20 @@ export default function PRCard({
   const reviewWaitTimerFormatted = formatDurationCompact(pr.reviewRequestedAt || pr.createdAt);
   const reviewSla = isReviewerTab ? getReviewSlaStatus(pr, settings) : null;
   const createdSla = isRaisedTab ? getCreatedSlaStatus(pr, settings) : null;
+  const [copiedCheckout, setCopiedCheckout] = useState(false);
+
+  const handleCopyCheckout = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(`gh pr checkout ${pr.number}`).then(() => {
+        setCopiedCheckout(true);
+        setTimeout(() => setCopiedCheckout(false), 2000);
+      }).catch((err) => {
+        console.error('Failed to copy checkout command', err);
+      });
+    }
+  };
 
   return (
     <div className={`pr-row ${isSelected ? 'is-selected' : ''} ${reviewSla?.status === 'overdue' ? 'sla-overdue' : ''}`} ref={cardRef}>
@@ -81,7 +96,25 @@ export default function PRCard({
           >
             {pr.title}
           </a>
-          <span className="pr-number-label">#{pr.number}</span>
+          <div className="pr-number-box">
+            <span className="pr-number-label">#{pr.number}</span>
+            <button
+              type="button"
+              className={`gh-pr-copy-btn ${copiedCheckout ? 'copied' : ''}`}
+              onClick={handleCopyCheckout}
+              title={copiedCheckout ? 'Copied checkout command!' : `Copy 'gh pr checkout ${pr.number}' to clipboard`}
+              aria-label={`Copy gh pr checkout ${pr.number}`}
+            >
+              {copiedCheckout ? (
+                <>
+                  <Check size={11} strokeWidth={2.8} />
+                  <span className="copied-text">Copied!</span>
+                </>
+              ) : (
+                <Copy size={11} />
+              )}
+            </button>
+          </div>
 
           {pr.isDraft && (
             <span className="gh-label gh-label-draft">Draft</span>

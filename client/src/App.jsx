@@ -280,6 +280,10 @@ export default function App() {
     const raisedMerged = applyFilters(prData.raisedMerged);
     const approved = applyFilters(prData.approved);
 
+    const unresolvedRaisedPRs = raised.filter(
+      (pr) => (pr.unresolvedCommentsCount || 0) > 0
+    );
+    const unresolvedRaisedPRsCount = unresolvedRaisedPRs.length;
     const totalUnresolvedRaisedComments = raised.reduce(
       (sum, pr) => sum + (pr.unresolvedCommentsCount || 0),
       0
@@ -297,6 +301,7 @@ export default function App() {
         raised: raised.length,
         raisedMerged: raisedMerged.length,
         approved: approved.length,
+        unresolvedRaisedPRsCount,
         totalUnresolvedRaisedComments,
       },
     };
@@ -716,7 +721,7 @@ export default function App() {
                   <span>{filteredData.counts.raisedMerged} Merged</span>
                 </button>
 
-                {filteredData.counts.totalUnresolvedRaisedComments > 0 && (
+                {filteredData.counts.unresolvedRaisedPRsCount > 0 && (
                   <button
                     type="button"
                     className={`gh-state-btn ${onlyUnresolved ? 'active unresolved-filter' : ''}`}
@@ -724,11 +729,10 @@ export default function App() {
                       setRaisedStateFilter('open');
                       setOnlyUnresolved(!onlyUnresolved);
                     }}
-                    title="Toggle PRs with unresolved comments"
+                    title={`${filteredData.counts.unresolvedRaisedPRsCount} open PR${filteredData.counts.unresolvedRaisedPRsCount > 1 ? 's have' : ' has'} ${filteredData.counts.totalUnresolvedRaisedComments} unresolved comment thread${filteredData.counts.totalUnresolvedRaisedComments > 1 ? 's' : ''}`}
                   >
                     <MessageSquare size={13} style={{ color: onlyUnresolved ? 'var(--color-attention-fg)' : 'inherit' }} />
-                    <span>Unresolved</span>
-                    <span className="state-badge">{filteredData.counts.totalUnresolvedRaisedComments}</span>
+                    <span>{filteredData.counts.unresolvedRaisedPRsCount} Unresolved</span>
                   </button>
                 )}
               </div>
