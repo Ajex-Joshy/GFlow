@@ -53,6 +53,31 @@ export function getCachedPRSummary() {
 export function setCachedPRSummary(data, organizations, staleNotice = null) {
   try {
     if (data) {
+      const existing = getCachedPRSummary();
+      const existingCount = existing?.data
+        ? Object.values(existing.data).reduce((s, a) => s + (Array.isArray(a) ? a.length : 0), 0)
+        : 0;
+      const newCount = Object.values(data).reduce(
+        (s, a) => s + (Array.isArray(a) ? a.length : 0),
+        0
+      );
+
+      // CRITICAL SHIELD: Never overwrite an existing populated PR cache with empty data during rate-limit / errors
+      if (newCount === 0 && existingCount > 0) {
+        console.warn('[Cache Shield] Blocked overwriting populated PR cache with empty list during rate limit.');
+        localStorage.setItem(
+          PR_CACHE_KEY,
+          JSON.stringify({
+            ...existing,
+            staleNotice: staleNotice || {
+              isStale: true,
+              staleReason: 'GitHub API hourly rate limit exceeded. Cached data is preserved.',
+            },
+          })
+        );
+        return;
+      }
+
       localStorage.setItem(
         PR_CACHE_KEY,
         JSON.stringify({

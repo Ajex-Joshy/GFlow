@@ -167,7 +167,23 @@ export default function App() {
 
     try {
       const result = await api.getPRSummary(force);
-      const freshData = result.data || { reviewer: [], raised: [], raisedMerged: [], approved: [] };
+      const freshData = result.data || { reviewer: [], raised: [], raisedMerged: [], approved: [], team: [] };
+      const freshCount = Object.values(freshData).reduce((s, a) => s + (Array.isArray(a) ? a.length : 0), 0);
+      const currentCount = prData
+        ? Object.values(prData).reduce((s, a) => s + (Array.isArray(a) ? a.length : 0), 0)
+        : 0;
+
+      // If rate limited and fresh result returned 0 PRs, preserve current PRs!
+      if ((result.isStale || result.rateLimited) && freshCount === 0 && currentCount > 0) {
+        console.warn('[Cache Shield] Preserving existing PRs on rate limit response');
+        setStaleNotice({
+          isStale: true,
+          fetchedAt: result.fetchedAt || new Date().toISOString(),
+          staleReason: result.staleReason || 'GitHub API hourly rate limit exceeded. Cached data is preserved.',
+        });
+        return;
+      }
+
       setPrData(freshData);
       hasLoadedOnceRef.current = true;
 
