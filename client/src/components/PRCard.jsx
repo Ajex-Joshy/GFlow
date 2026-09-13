@@ -20,20 +20,22 @@ import {
 } from '../utils/dateFormatter';
 
 function getReviewerTooltip(rev, pr) {
-  const name = rev.login ? `@${rev.login}: ` : '';
-  if (rev.state === 'APPROVED') {
+  if (!rev) return '';
+  const name = rev.login ? `@${rev.login}: ` : rev.name ? `${rev.name}: ` : '';
+  const state = rev.state || 'PENDING';
+  if (state === 'APPROVED') {
     const time = rev.submittedAt ? formatRelativeOnly(rev.submittedAt) : 'recently';
     return `${name}approved ${time}`;
   }
-  if (rev.state === 'CHANGES_REQUESTED') {
+  if (state === 'CHANGES_REQUESTED') {
     const time = rev.submittedAt ? formatRelativeOnly(rev.submittedAt) : 'recently';
     return `${name}requested changes ${time}`;
   }
-  if (rev.state === 'COMMENTED') {
+  if (state === 'COMMENTED') {
     const time = rev.submittedAt ? formatRelativeOnly(rev.submittedAt) : 'recently';
     return `${name}commented ${time}`;
   }
-  const waitTime = formatDurationAgo(rev.requestedAt || pr.reviewRequestedAt || pr.createdAt);
+  const waitTime = formatDurationAgo(rev.requestedAt || pr?.reviewRequestedAt || pr?.createdAt);
   return `${name}requested ${waitTime}`;
 }
 
@@ -318,32 +320,36 @@ export default function PRCard({
         {/* Reviewers Avatar Stack with Micro-Badges on Right Side (Raised & Team PRs) */}
         {(isRaisedTab || isTeamTab) && showReviewerStatus && pr.reviewers?.length > 0 && (
           <div className="reviewer-avatar-stack" aria-label="Reviewers">
-            {pr.reviewers.map((rev) => (
-              <div
-                key={rev.login}
-                className={`reviewer-avatar-item ${rev.state.toLowerCase()}`}
-                title={getReviewerTooltip(rev, pr)}
-              >
-                {rev.avatarUrl ? (
-                  <img src={rev.avatarUrl} alt={rev.login} className="reviewer-stack-avatar" />
-                ) : (
-                  <div className="reviewer-stack-avatar reviewer-fallback-avatar">
-                    {rev.login?.slice(0, 2).toUpperCase()}
-                  </div>
-                )}
-                <span className={`reviewer-micro-badge ${rev.state.toLowerCase()}`}>
-                  {rev.state === 'APPROVED' ? (
-                    <Check size={8} strokeWidth={3.5} />
-                  ) : rev.state === 'CHANGES_REQUESTED' ? (
-                    <X size={8} strokeWidth={3.5} />
-                  ) : rev.state === 'COMMENTED' ? (
-                    <MessageSquare size={7} strokeWidth={2.5} />
+            {pr.reviewers.map((rev, rIdx) => {
+              const revState = (rev?.state || 'pending').toLowerCase();
+              const revLogin = rev?.login || rev?.name || `user-${rIdx}`;
+              return (
+                <div
+                  key={revLogin}
+                  className={`reviewer-avatar-item ${revState}`}
+                  title={getReviewerTooltip(rev, pr)}
+                >
+                  {rev?.avatarUrl ? (
+                    <img src={rev.avatarUrl} alt={revLogin} className="reviewer-stack-avatar" />
                   ) : (
-                    <Clock size={7} strokeWidth={2.5} />
+                    <div className="reviewer-stack-avatar reviewer-fallback-avatar">
+                      {revLogin.slice(0, 2).toUpperCase()}
+                    </div>
                   )}
-                </span>
-              </div>
-            ))}
+                  <span className={`reviewer-micro-badge ${revState}`}>
+                    {rev?.state === 'APPROVED' ? (
+                      <Check size={8} strokeWidth={3.5} />
+                    ) : rev?.state === 'CHANGES_REQUESTED' ? (
+                      <X size={8} strokeWidth={3.5} />
+                    ) : rev?.state === 'COMMENTED' ? (
+                      <MessageSquare size={7} strokeWidth={2.5} />
+                    ) : (
+                      <Clock size={7} strokeWidth={2.5} />
+                    )}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
 

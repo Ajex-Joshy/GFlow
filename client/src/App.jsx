@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Search, GitPullRequest, GitMerge, Building2, Bot, Command, ArrowUpDown, GitFork, MessageSquare, Check, AlertTriangle, Users } from 'lucide-react';
+import { Search, GitPullRequest, GitMerge, Building2, Bot, Command, ArrowUpDown, GitFork, MessageSquare, Check, AlertTriangle, Users, Clock } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
@@ -499,7 +499,7 @@ export default function App() {
     }
 
     return sorted;
-  }, [filteredData, activeTab, raisedStateFilter, onlyUnresolved, selectedRepo, searchQuery, sortOrder]);
+  }, [filteredData, activeTab, raisedStateFilter, onlyUnresolved, onlyOverdue, selectedRepo, searchQuery, sortOrder]);
 
   // Reset keyboard focus when view or search changes
   useEffect(() => {
