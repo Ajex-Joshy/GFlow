@@ -142,7 +142,8 @@ export default function App() {
       } catch (err) {
         if (err.status === 429 || err.message?.toLowerCase().includes('rate limit')) {
           setIsAuthenticated(true);
-          setFetchError('GitHub API hourly rate limit reached. Existing data is preserved; retrying automatically.');
+          // Rate limited, session preserved via cached user
+          setFetchError('');
         } else {
           setIsAuthenticated(false);
           setUser(null);
@@ -846,7 +847,7 @@ export default function App() {
             </div>
           )}
 
-          {fetchError && (
+          {fetchError && !staleNotice && (
             <div className="error-banner">
               <span>{fetchError}</span>
             </div>
