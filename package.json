@@ -7,8 +7,9 @@
     "client": "npm run dev --prefix client",
     "build:client": "npm run build --prefix client",
     "start": "node server/src/server.js",
-    "test:server": "node --check server/src/server.js",
-    "test": "npm run test:server && npm run build:client"
+    "test:server": "node --check server/src/app.js && node --check server/src/server.js && node --check api/index.js",
+    "test": "npm run test:server && npm run build",
+    "build": "npm run build --prefix client"
   },
   "keywords": [
     "github",
@@ -19,5 +20,9 @@
     "primer"
   ],
   "author": "Ajex Joshy",
-  "license": "MIT"
+  "license": "MIT",
+  "workspaces": [
+    "client",
+    "server"
+  ]
 }

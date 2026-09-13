@@ -4,6 +4,7 @@
 
 **High-velocity pull request triage & review board matching native GitHub Primer aesthetics.**
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Ajex-Joshy/GFlow&env=GITHUB_CLIENT_ID,GITHUB_CLIENT_SECRET,GITHUB_CALLBACK_URL)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2018.0.0-339933?logo=node.js&logoColor=white)](https://nodejs.org)
@@ -11,7 +12,7 @@
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
 
-[Quickstart](#quickstart) &bull; [Features](#features) &bull; [Docker](#docker) &bull; [Keyboard Shortcuts](#keyboard-shortcuts) &bull; [Architecture](#architecture) &bull; [Contributing](CONTRIBUTING.md)
+[Deploy to Vercel](#deploy-to-vercel-1-click) &bull; [Quickstart](#quickstart) &bull; [Features](#features) &bull; [Docker](#docker) &bull; [Keyboard Shortcuts](#keyboard-shortcuts) &bull; [Architecture](#architecture) &bull; [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -83,6 +84,18 @@ GFlow includes full keyboard navigation for mouse-free triage:
 | <kbd>r</kbd> | Refresh pull requests from GitHub |
 | <kbd>?</kbd> | Open keyboard shortcuts reference |
 | <kbd>Esc</kbd> | Dismiss modals or blur search input |
+
+---
+
+## Deploy to Vercel (1-Click)
+
+Deploy your own private instance of GFlow to Vercel in under 60 seconds:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Ajex-Joshy/GFlow&env=GITHUB_CLIENT_ID,GITHUB_CLIENT_SECRET,GITHUB_CALLBACK_URL)
+
+1. Click the button above to clone and deploy to your Vercel account.
+2. *(Optional)* Provide your `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` for OAuth, or leave them empty to log in directly with a Personal Access Token (PAT).
+3. Click **Deploy**. Your dashboard will launch instantly with global CDN acceleration and automatic HTTPS.
 
 ---
 
