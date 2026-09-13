@@ -27,6 +27,16 @@ export default function SettingsModal({
     triggerSavedToast();
   };
 
+  const handleToggleTeamTab = () => {
+    const updated = {
+      ...currentSettings,
+      showTeamTab: currentSettings.showTeamTab === false ? true : false,
+    };
+    setCurrentSettings(updated);
+    onSaveSettings(updated);
+    triggerSavedToast();
+  };
+
   const handleToggleApprovedTab = () => {
     const updated = {
       ...currentSettings,
@@ -284,6 +294,23 @@ export default function SettingsModal({
                 <Tag size={16} />
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 className="settings-heading">Show &quot;Team PRs&quot; Tab</h3>
+                    <label className="gh-toggle-label">
+                      <input
+                        type="checkbox"
+                        checked={currentSettings.showTeamTab !== false}
+                        onChange={handleToggleTeamTab}
+                      />
+                      <span className="gh-toggle-slider" />
+                    </label>
+                  </div>
+                  <p className="settings-desc">
+                    Display team-wide open pull requests across your organization for leads, managers, and cross-team visibility.
+                  </p>
+                </div>
+
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h3 className="settings-heading">Show &quot;Approved&quot; Tab</h3>

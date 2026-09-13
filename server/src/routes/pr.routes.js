@@ -6,6 +6,7 @@ import {
   getRaisedPRs,
   getRaisedMergedPRs,
   getApprovedPRs,
+  getTeamPRs,
 } from '../services/githubService.js';
 
 const router = express.Router();
@@ -39,7 +40,7 @@ router.get('/summary', async (req, res) => {
     const username = user.login;
     const orgs = user.organizations?.nodes || [];
 
-    const [reviewerPRs, raisedPRs, raisedMergedPRs, approvedPRs] = await Promise.all([
+    const [reviewerPRs, raisedPRs, raisedMergedPRs, approvedPRs, teamPRs] = await Promise.all([
       getReviewerPRs(req.ghToken, username).catch((err) => {
         console.error('Error fetching reviewer PRs:', err.message);
         return [];
@@ -54,6 +55,10 @@ router.get('/summary', async (req, res) => {
       }),
       getApprovedPRs(req.ghToken, username).catch((err) => {
         console.error('Error fetching approved PRs:', err.message);
+        return [];
+      }),
+      getTeamPRs(req.ghToken, username, orgs).catch((err) => {
+        console.error('Error fetching team PRs:', err.message);
         return [];
       }),
     ]);
@@ -72,6 +77,7 @@ router.get('/summary', async (req, res) => {
         raised: raisedPRs.length,
         raisedMerged: raisedMergedPRs.length,
         approved: approvedPRs.length,
+        team: teamPRs.length,
         totalUnresolvedRaisedComments,
       },
       data: {
@@ -79,6 +85,7 @@ router.get('/summary', async (req, res) => {
         raised: raisedPRs,
         raisedMerged: raisedMergedPRs,
         approved: approvedPRs,
+        team: teamPRs,
       },
       fetchedAt: new Date().toISOString(),
     };
@@ -149,6 +156,20 @@ router.get('/approved', async (req, res) => {
   try {
     const user = await getUserProfile(req.ghToken);
     const prs = await getApprovedPRs(req.ghToken, user.login);
+    res.json({ count: prs.length, prs });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/prs/team
+ */
+router.get('/team', async (req, res) => {
+  try {
+    const user = await getUserProfile(req.ghToken);
+    const orgs = user.organizations?.nodes || [];
+    const prs = await getTeamPRs(req.ghToken, user.login, orgs);
     res.json({ count: prs.length, prs });
   } catch (error) {
     res.status(500).json({ error: error.message });

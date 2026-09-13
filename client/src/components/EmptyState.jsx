@@ -68,6 +68,10 @@ export default function EmptyState({ tabType, searchQuery, selectedOrg, selected
       title: 'There aren’t any open pull requests created by you.',
       desc: 'Pull requests you open across your personal and organization repositories will be tracked here.',
     },
+    team: {
+      title: 'There aren’t any active team pull requests.',
+      desc: 'All open pull requests across your team and organization repositories will appear here for leads and managers.',
+    },
     approved: {
       title: 'There aren’t any pull requests you have approved.',
       desc: 'Pull requests that you have reviewed and approved will show up here.',

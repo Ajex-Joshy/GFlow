@@ -53,12 +53,13 @@ export default function PRCard({
 }) {
   const isRaisedTab = tabType === 'raised';
   const isReviewerTab = tabType === 'reviewer';
+  const isTeamTab = tabType === 'team';
   const isMerged = pr.state === 'MERGED' || Boolean(pr.mergedAt);
   const hasUnresolvedComments = (pr.unresolvedCommentsCount || 0) > 0;
   const createdFormatted = formatPRTimestamp(pr.createdAt);
   const reviewWaitTimerFormatted = formatDurationCompact(pr.reviewRequestedAt || pr.createdAt);
   const reviewSla = isReviewerTab ? getReviewSlaStatus(pr, settings) : null;
-  const createdSla = isRaisedTab ? getCreatedSlaStatus(pr, settings) : null;
+  const createdSla = (isRaisedTab || isTeamTab) ? getCreatedSlaStatus(pr, settings) : null;
 
   // When a specific single organization or personal is selected, omit duplicate owner name
   const repoDisplayName = useMemo(() => {
@@ -303,8 +304,8 @@ export default function PRCard({
 
       {/* Right Side: Reviewers (Raised tab), SLA Wait Timer (Reviewer tab), Unresolved Comments & Diff stats */}
       <div className="pr-row-right">
-        {/* Reviewers Avatar Stack with Micro-Badges on Right Side (Raised PRs) */}
-        {isRaisedTab && showReviewerStatus && pr.reviewers?.length > 0 && (
+        {/* Reviewers Avatar Stack with Micro-Badges on Right Side (Raised & Team PRs) */}
+        {(isRaisedTab || isTeamTab) && showReviewerStatus && pr.reviewers?.length > 0 && (
           <div className="reviewer-avatar-stack" aria-label="Reviewers">
             {pr.reviewers.map((rev) => (
               <div
@@ -347,7 +348,7 @@ export default function PRCard({
         )}
 
         {/* Flag unresolved comments */}
-        {isRaisedTab && !isMerged && hasUnresolvedComments && (
+        {(isRaisedTab || isTeamTab) && !isMerged && hasUnresolvedComments && (
           <span
             className="unresolved-badge"
             title={`${pr.unresolvedCommentsCount} unresolved review thread${pr.unresolvedCommentsCount > 1 ? 's' : ''}`}
@@ -357,8 +358,8 @@ export default function PRCard({
           </span>
         )}
 
-        {/* 1-Click Ping Reviewers Action Button (Created Stalled / Follow-up PRs) */}
-        {isRaisedTab && !isMerged && createdSla && (
+        {/* 1-Click Ping Reviewers Action Button (Created & Team Stalled / Follow-up PRs) */}
+        {(isRaisedTab || isTeamTab) && !isMerged && createdSla && (
           <div className="pr-ping-wrapper">
             <button
               type="button"
@@ -400,7 +401,7 @@ export default function PRCard({
         )}
 
         {/* Total Comments if not showing unresolved */}
-        {(!isRaisedTab || isMerged) && pr.totalCommentsCount > 0 && (
+        {((!isRaisedTab && !isTeamTab) || isMerged) && pr.totalCommentsCount > 0 && (
           <span
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-fg-muted)', fontSize: '12px' }}
             title={`${pr.totalCommentsCount} comments`}

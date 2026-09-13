@@ -384,6 +384,41 @@ export const getApprovedPRs = async (token, username) => {
 };
 
 /**
+ * 4. Team PRs: All active open PRs across user's organizations and personal repositories
+ * Ideal for Engineering Managers, Tech Leads, and Team Overviews.
+ */
+export const getTeamPRs = async (token, username, orgs = []) => {
+  const client = createClient(token);
+  
+  // Build search qualifiers: e.g. "org:org1 org:org2 user:username"
+  const orgLogins = (orgs || []).map((o) => o.login || o).filter(Boolean);
+  const scopeParts = orgLogins.map((login) => `org:${login}`);
+  if (username) {
+    scopeParts.push(`user:${username}`);
+  }
+  
+  const scopeFilter = scopeParts.length > 0 ? scopeParts.join(' ') : `user:${username}`;
+  const queryString = `is:open is:pr ${scopeFilter} archived:false`;
+
+  const data = await client(`
+    query ($queryString: String!) {
+      search(query: $queryString, type: ISSUE, first: 100) {
+        issueCount
+        nodes {
+          ... on PullRequest {
+            ${PR_FIELDS}
+          }
+        }
+      }
+    }
+  `, { queryString });
+
+  return (data.search?.nodes || []).map((node) =>
+    formatPRNode(node, { currentUserLogin: username })
+  );
+};
+
+/**
  * Exchange OAuth authorization code for GitHub access token
  */
 export const exchangeOAuthCode = async (code, clientId, clientSecret) => {

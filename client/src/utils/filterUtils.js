@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS = {
   ignoreBots: false,
   excludedRepos: [],
   defaultOrg: 'all',
+  showTeamTab: true,
   showApprovedTab: true,
   showLabels: false,
   showDetailedTimestamp: false,

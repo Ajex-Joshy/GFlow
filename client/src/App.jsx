@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Search, GitPullRequest, GitMerge, Building2, Bot, Command, ArrowUpDown, GitFork, MessageSquare, Check, AlertTriangle } from 'lucide-react';
+import { Search, GitPullRequest, GitMerge, Building2, Bot, Command, ArrowUpDown, GitFork, MessageSquare, Check, AlertTriangle, Users } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
@@ -9,6 +9,7 @@ import LoginView from './components/LoginView';
 import SettingsModal from './components/SettingsModal';
 import ShortcutsModal from './components/ShortcutsModal';
 import { loadSettings, saveSettings, isBotPR } from './utils/filterUtils';
+import { getCreatedSlaStatus } from './utils/slaUtils';
 import { formatRelativeOnly } from './utils/dateFormatter';
 import {
   getCachedUser,
@@ -54,6 +55,7 @@ export default function App() {
         raised: [],
         raisedMerged: [],
         approved: [],
+        team: [],
       }
     );
   });
@@ -219,6 +221,9 @@ export default function App() {
     if (newSettings.showApprovedTab === false && activeTab === 'approved') {
       setActiveTab('reviewer');
     }
+    if (newSettings.showTeamTab === false && activeTab === 'team') {
+      setActiveTab('reviewer');
+    }
   };
 
   // Extract all unique repositories available in loaded PRs
@@ -279,6 +284,7 @@ export default function App() {
     const raised = applyFilters(prData.raised);
     const raisedMerged = applyFilters(prData.raisedMerged);
     const approved = applyFilters(prData.approved);
+    const team = applyFilters(prData.team);
 
     const unresolvedRaisedPRs = raised.filter(
       (pr) => (pr.unresolvedCommentsCount || 0) > 0
@@ -289,11 +295,18 @@ export default function App() {
       0
     );
 
+    const teamStalledPRs = team.filter((pr) => {
+      const sla = getCreatedSlaStatus(pr, settings);
+      return sla?.status === 'stalled';
+    });
+    const teamStalledPRsCount = teamStalledPRs.length;
+
     return {
       reviewer,
       raised,
       raisedMerged,
       approved,
+      team,
       hiddenBotsCount,
       hiddenExcludedReposCount,
       counts: {
@@ -301,6 +314,8 @@ export default function App() {
         raised: raised.length,
         raisedMerged: raisedMerged.length,
         approved: approved.length,
+        team: team.length,
+        teamStalledPRsCount,
         unresolvedRaisedPRsCount,
         totalUnresolvedRaisedComments,
       },
@@ -340,7 +355,7 @@ export default function App() {
       );
       return options;
     }
-    if (activeTab === 'raised') {
+    if (activeTab === 'raised' || activeTab === 'team') {
       const options = [
         { value: 'recently-updated', label: 'Recently updated' },
       ];
@@ -351,6 +366,7 @@ export default function App() {
         { value: 'most-unresolved', label: 'Most unresolved comments' },
         { value: 'newest', label: 'Newest created' },
         { value: 'oldest', label: 'Oldest created' },
+        { value: 'smallest-diff', label: 'Smallest diff first' },
         { value: 'most-comments', label: 'Most comments' },
       );
       return options;
@@ -387,6 +403,8 @@ export default function App() {
       if (raisedStateFilter === 'open' && onlyUnresolved) {
         list = list.filter((pr) => (pr.unresolvedCommentsCount || 0) > 0);
       }
+    } else if (activeTab === 'team') {
+      list = filteredData.team || [];
     } else {
       list = filteredData[activeTab] || [];
     }
@@ -700,6 +718,7 @@ export default function App() {
             }}
             counts={filteredData.counts}
             showApprovedTab={settings.showApprovedTab !== false}
+            showTeamTab={settings.showTeamTab !== false}
           />
         </div>
 
@@ -746,6 +765,14 @@ export default function App() {
                     <MessageSquare size={13} style={{ color: onlyUnresolved ? 'var(--color-attention-fg)' : 'inherit' }} />
                     <span>{filteredData.counts.unresolvedRaisedPRsCount} Unresolved</span>
                   </button>
+                )}
+              </div>
+            ) : activeTab === 'team' ? (
+              <div className="gh-box-header-title">
+                <Users size={14} style={{ color: 'var(--color-accent-fg)' }} />
+                <span>{currentPRs.length} Team {currentPRs.length === 1 ? 'Pull Request' : 'Pull Requests'}</span>
+                {selectedRepo !== 'all' && (
+                  <span className="filter-tag">• {selectedRepo.includes('/') ? selectedRepo.split('/')[1] : selectedRepo}</span>
                 )}
               </div>
             ) : activeTab === 'reviewer' ? (
