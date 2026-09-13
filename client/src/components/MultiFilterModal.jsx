@@ -292,15 +292,17 @@ export default function MultiFilterModal({
     return true;
   });
 
-  // Ensure activeCategory always points to an active visible category
-  useEffect(() => {
-    if (categories.length > 0 && !categories.some((c) => c.id === activeCategory)) {
-      setActiveCategory(categories[0].id);
-    }
-  }, [categories, activeCategory]);
+  const effectiveActiveCategory = categories.some((c) => c.id === activeCategory)
+    ? activeCategory
+    : (categories[0]?.id || 'repositories');
 
-  const currentOptions = categoryData[activeCategory] || [];
-  const selectedInCurrentCategory = filters[activeCategory] || [];
+  const currentCategoryObj = categories.find((c) => c.id === effectiveActiveCategory) || categories[0] || null;
+  const currentCategoryLabel = currentCategoryObj?.label ? currentCategoryObj.label.toLowerCase() : 'options';
+
+  const currentOptions = categoryData[effectiveActiveCategory] || [];
+  const selectedInCurrentCategory = Array.isArray(filters?.[effectiveActiveCategory])
+    ? filters[effectiveActiveCategory]
+    : [];
 
   const filteredOptions = currentOptions.filter((opt) => {
     if (!categorySearch.trim()) return true;
@@ -320,7 +322,7 @@ export default function MultiFilterModal({
 
     onFiltersChange({
       ...filters,
-      [activeCategory]: updated,
+      [effectiveActiveCategory]: updated,
     });
   };
 
@@ -329,14 +331,14 @@ export default function MultiFilterModal({
     const combined = Array.from(new Set([...selectedInCurrentCategory, ...allFilteredIds]));
     onFiltersChange({
       ...filters,
-      [activeCategory]: combined,
+      [effectiveActiveCategory]: combined,
     });
   };
 
   const handleClearCurrentCategory = () => {
     onFiltersChange({
       ...filters,
-      [activeCategory]: [],
+      [effectiveActiveCategory]: [],
     });
   };
 
@@ -376,7 +378,7 @@ export default function MultiFilterModal({
           <nav className="multi-filter-nav" aria-label="Filter categories">
             {categories.map((cat) => {
               const Icon = cat.icon;
-              const isActive = activeCategory === cat.id;
+              const isActive = effectiveActiveCategory === cat.id;
 
               return (
                 <button
@@ -409,7 +411,7 @@ export default function MultiFilterModal({
                 <input
                   type="text"
                   className="multi-filter-search-input"
-                  placeholder={`Search ${categories.find((c) => c.id === activeCategory)?.label?.toLowerCase()}...`}
+                  placeholder={`Search ${currentCategoryLabel}...`}
                   value={categorySearch}
                   onChange={(e) => setCategorySearch(e.target.value)}
                   autoFocus
@@ -450,7 +452,7 @@ export default function MultiFilterModal({
             <div className="multi-filter-options-list">
               {filteredOptions.length === 0 ? (
                 <div className="multi-filter-empty-options">
-                  <p>No matching {categories.find((c) => c.id === activeCategory)?.label.toLowerCase()} found</p>
+                  <p>No matching {currentCategoryLabel} found</p>
                 </div>
               ) : (
                 filteredOptions.map((opt) => {
@@ -487,7 +489,7 @@ export default function MultiFilterModal({
                           />
                         )}
 
-                        {activeCategory === 'reviewStatus' && (
+                        {effectiveActiveCategory === 'reviewStatus' && (
                           <span className={`multi-filter-status-icon ${opt.statusType}`}>
                             {opt.id === 'APPROVED' ? (
                               <Check size={13} strokeWidth={3} style={{ color: 'var(--color-open-fg)' }} />
