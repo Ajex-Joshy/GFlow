@@ -118,7 +118,7 @@ export default function App() {
   }, []);
 
   // 2. Fetch PRs function (Stale-While-Revalidate)
-  const loadPRData = useCallback(async (isSilent = false) => {
+  const loadPRData = useCallback(async (isSilent = false, force = false) => {
     // Only display full skeleton loader if this is the first load with no existing/cached PRs
     if (!isSilent && !hasLoadedOnceRef.current) {
       setIsLoadingPRs(true);
@@ -127,7 +127,7 @@ export default function App() {
     setFetchError('');
 
     try {
-      const result = await api.getPRSummary();
+      const result = await api.getPRSummary(force);
       const freshData = result.data || { reviewer: [], raised: [], raisedMerged: [], approved: [] };
       setPrData(freshData);
       hasLoadedOnceRef.current = true;
@@ -169,7 +169,7 @@ export default function App() {
   // Load PRs whenever authentication is confirmed
   useEffect(() => {
     if (isAuthenticated) {
-      loadPRData(hasLoadedOnceRef.current);
+      loadPRData(hasLoadedOnceRef.current, true);
     }
   }, [isAuthenticated, loadPRData]);
 
@@ -177,7 +177,7 @@ export default function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
     const interval = setInterval(() => {
-      loadPRData(true);
+      loadPRData(true, true);
     }, 180000);
     return () => clearInterval(interval);
   }, [isAuthenticated, loadPRData]);
@@ -487,7 +487,7 @@ export default function App() {
       // 'r' or 'R' to refresh data
       if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
-        loadPRData(true);
+        loadPRData(true, true);
         return;
       }
 
@@ -588,7 +588,7 @@ export default function App() {
     <div className="app-container">
       <Navbar
         user={user}
-        onRefresh={() => loadPRData(true)}
+        onRefresh={() => loadPRData(true, true)}
         isRefreshing={isRefreshing}
         onLogout={handleLogout}
         onOpenSettings={() => setIsSettingsOpen(true)}

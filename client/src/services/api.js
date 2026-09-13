@@ -46,7 +46,7 @@ export const api = {
     }),
 
   // PR Endpoints
-  getPRSummary: () => request('/prs/summary'),
+  getPRSummary: (force = false) => request(`/prs/summary${force ? '?force=true' : ''}`),
   getReviewerPRs: () => request('/prs/reviewer'),
   getRaisedPRs: () => request('/prs/raised'),
   getApprovedPRs: () => request('/prs/approved'),

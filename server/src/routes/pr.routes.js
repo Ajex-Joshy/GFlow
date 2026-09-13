@@ -13,22 +13,26 @@ const router = express.Router();
 // Apply auth middleware to all PR routes
 router.use(requireAuth);
 
-// In-memory cache for PR summaries (60-second TTL) to protect GitHub API rate limit
+// In-memory cache for PR summaries (15-second TTL) to debounce accidental rapid double-clicks
 const summaryCache = new Map();
-const SUMMARY_CACHE_TTL_MS = 60 * 1000;
+const SUMMARY_CACHE_TTL_MS = 15 * 1000;
 
 /**
  * GET /api/prs/summary
  * Fetches PRs for the 3 core tabs (Reviewer, Raised, Approved) across personal and org repos
  */
 router.get('/summary', async (req, res) => {
+  const isForce = req.query.force === 'true';
   const cached = summaryCache.get(req.ghToken);
   const now = Date.now();
 
-  // If cached data is fresh (< 60s), serve instantly without calling GitHub
-  if (cached && (now - cached.timestamp < SUMMARY_CACHE_TTL_MS) && req.query.force !== 'true') {
+  // If not forced and cached data is fresh (< 15s), serve from cache
+  if (!isForce && cached && (now - cached.timestamp < SUMMARY_CACHE_TTL_MS)) {
+    console.log('[Cache] Serving PR summary from memory cache');
     return res.json(cached.payload);
   }
+
+  console.log(`[GitHub API] ${isForce ? 'Forced refresh' : 'Fetching'} - Querying live data from GitHub GraphQL...`);
 
   try {
     const user = await getUserProfile(req.ghToken);
