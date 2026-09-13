@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Search, GitPullRequest, GitMerge, Building2, Bot, Command, ArrowUpDown, GitFork, MessageSquare, Check, AlertTriangle, Users, Clock } from 'lucide-react';
+import { Search, GitPullRequest, GitMerge, Building2, Bot, Command, ArrowUpDown, GitFork, MessageSquare, Check, AlertTriangle, Users, Clock, SlidersHorizontal, X, RotateCcw } from 'lucide-react';
 import { api } from './services/api';
 import Navbar from './components/Navbar';
 import Tabs from './components/Tabs';
@@ -8,6 +8,8 @@ import EmptyState from './components/EmptyState';
 import LoginView from './components/LoginView';
 import SettingsModal from './components/SettingsModal';
 import ShortcutsModal from './components/ShortcutsModal';
+import MultiFilterModal from './components/MultiFilterModal';
+import ActiveFilterBar from './components/ActiveFilterBar';
 import { loadSettings, saveSettings, isBotPR } from './utils/filterUtils';
 import { getCreatedSlaStatus, getReviewSlaStatus } from './utils/slaUtils';
 import { formatRelativeOnly } from './utils/dateFormatter';
@@ -40,6 +42,40 @@ export default function App() {
   const [sortOrder, setSortOrder] = useState('recently-updated');
   const [onlyUnresolved, setOnlyUnresolved] = useState(false);
   const [onlyOverdue, setOnlyOverdue] = useState(false);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [activeMultiFilters, setActiveMultiFilters] = useState({
+    repositories: [],
+    authors: [],
+    assignees: [],
+    reviewers: [],
+    labels: [],
+    slaUrgency: [],
+  });
+
+  const totalActiveMultiFilters = useMemo(() => {
+    return Object.values(activeMultiFilters).reduce(
+      (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0),
+      0
+    );
+  }, [activeMultiFilters]);
+
+  const handleResetMultiFilters = useCallback(() => {
+    setActiveMultiFilters({
+      repositories: [],
+      authors: [],
+      assignees: [],
+      reviewers: [],
+      labels: [],
+      slaUrgency: [],
+    });
+  }, []);
+
+  const handleRemoveSingleFilter = useCallback((category, id) => {
+    setActiveMultiFilters((prev) => ({
+      ...prev,
+      [category]: (prev[category] || []).filter((item) => item !== id),
+    }));
+  }, []);
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(cachedUserEntry?.user));
   const [authLoading, setAuthLoading] = useState(() => !Boolean(cachedUserEntry?.user));
   const [oauthConfigured, setOauthConfigured] = useState(false);
@@ -450,6 +486,55 @@ export default function App() {
       list = list.filter((pr) => pr.repository?.nameWithOwner?.toLowerCase() === selectedRepo.toLowerCase());
     }
 
+    // Compound Multi-Filters (Repositories, Authors, Assignees, Reviewers, Labels, SLA)
+    if (activeMultiFilters.repositories?.length > 0) {
+      list = list.filter((pr) => {
+        const key = pr.repository?.nameWithOwner || pr.repository?.name;
+        return activeMultiFilters.repositories.includes(key);
+      });
+    }
+
+    if (activeMultiFilters.authors?.length > 0) {
+      list = list.filter((pr) => activeMultiFilters.authors.includes(pr.author?.login));
+    }
+
+    if (activeMultiFilters.assignees?.length > 0) {
+      list = list.filter((pr) =>
+        (pr.assignees || []).some((a) => activeMultiFilters.assignees.includes(a.login))
+      );
+    }
+
+    if (activeMultiFilters.reviewers?.length > 0) {
+      list = list.filter((pr) =>
+        (pr.reviewers || []).some((r) => activeMultiFilters.reviewers.includes(r.login || r.name))
+      );
+    }
+
+    if (activeMultiFilters.labels?.length > 0) {
+      list = list.filter((pr) =>
+        (pr.labels || []).some((l) => activeMultiFilters.labels.includes(l.name))
+      );
+    }
+
+    if (activeMultiFilters.slaUrgency?.length > 0) {
+      list = list.filter((pr) => {
+        const reviewSla = getReviewSlaStatus(pr, settings);
+        const createdSla = getCreatedSlaStatus(pr, settings);
+
+        return activeMultiFilters.slaUrgency.some((urgency) => {
+          if (urgency === 'overdue') return reviewSla?.status === 'overdue';
+          if (urgency === 'stalled') return createdSla?.status === 'stalled';
+          if (urgency === 'due-soon') {
+            return reviewSla?.status === 'due-soon' || createdSla?.status === 'follow-up';
+          }
+          if (urgency === 'healthy') {
+            return !reviewSla?.status && !createdSla?.status;
+          }
+          return false;
+        });
+      });
+    }
+
     // Search query filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
@@ -499,12 +584,12 @@ export default function App() {
     }
 
     return sorted;
-  }, [filteredData, activeTab, raisedStateFilter, onlyUnresolved, onlyOverdue, selectedRepo, searchQuery, sortOrder]);
+  }, [filteredData, activeTab, raisedStateFilter, onlyUnresolved, onlyOverdue, selectedRepo, searchQuery, sortOrder, activeMultiFilters, settings]);
 
   // Reset keyboard focus when view or search changes
   useEffect(() => {
     setFocusedIndex(-1);
-  }, [activeTab, selectedOrg, raisedStateFilter, searchQuery, selectedRepo, sortOrder, onlyUnresolved, onlyOverdue]);
+  }, [activeTab, selectedOrg, raisedStateFilter, searchQuery, selectedRepo, sortOrder, onlyUnresolved, onlyOverdue, activeMultiFilters]);
 
   // Global Keyboard Navigation & Hotkeys
   useEffect(() => {
@@ -723,6 +808,13 @@ export default function App() {
             </div>
           </div>
 
+          {/* Active Filter Pills Bar */}
+          <ActiveFilterBar
+            filters={activeMultiFilters}
+            onRemoveFilter={handleRemoveSingleFilter}
+            onResetFilters={handleResetMultiFilters}
+          />
+
           {staleNotice && (
             <div className="warning-banner">
               <AlertTriangle size={18} style={{ flexShrink: 0, color: 'var(--color-attention-fg)' }} />
@@ -893,23 +985,34 @@ export default function App() {
                 </span>
               )}
 
-              {/* Repository Filter Dropdown */}
-              <div className="header-filter-box">
-                <GitFork size={13} className="header-filter-icon" />
-                <select
-                  className="header-filter-select"
-                  value={selectedRepo}
-                  onChange={(e) => setSelectedRepo(e.target.value)}
-                  title="Filter by Repository"
+              {/* Master-Detail Multi-Filter Button */}
+              <button
+                type="button"
+                className={`gh-multi-filter-btn ${totalActiveMultiFilters > 0 ? 'has-active' : ''}`}
+                onClick={() => setIsFilterModalOpen(true)}
+                title="Open multi-filter options (Repositories, Authors, Assignees, Reviewers, Labels, SLA)"
+              >
+                <SlidersHorizontal size={13} />
+                <span>Filters</span>
+                {totalActiveMultiFilters > 0 && (
+                  <span className="gh-multi-filter-count-badge">
+                    {totalActiveMultiFilters}
+                  </span>
+                )}
+              </button>
+
+              {/* Outside Clear Filters Button (Appears only when filters are active) */}
+              {totalActiveMultiFilters > 0 && (
+                <button
+                  type="button"
+                  className="gh-clear-filters-btn"
+                  onClick={handleResetMultiFilters}
+                  title="Clear all active filters"
                 >
-                  <option value="all">Repository: All</option>
-                  {filteredAvailableRepos.map((repo) => (
-                    <option key={repo} value={repo}>
-                      {repo.includes('/') ? repo.split('/')[1] : repo}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <X size={12} strokeWidth={2.5} />
+                  <span>Clear</span>
+                </button>
+              )}
 
               {/* Sort Dropdown */}
               <div className="header-filter-box">
@@ -970,6 +1073,21 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* Master-Detail Multi-Filter Modal */}
+      <MultiFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        filters={activeMultiFilters}
+        onFiltersChange={setActiveMultiFilters}
+        onResetFilters={handleResetMultiFilters}
+        prPool={
+          activeTab === 'raised'
+            ? (raisedStateFilter === 'merged' ? filteredData.raisedMerged : filteredData.raised)
+            : (filteredData[activeTab] || [])
+        }
+        settings={settings}
+      />
 
       {/* Settings & Filtering Modal */}
       <SettingsModal

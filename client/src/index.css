@@ -2114,3 +2114,492 @@ kbd.gh-kbd {
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
+
+/* ==========================================================================
+   Master-Detail Multi-Filter System & Active Filter Bar
+   ========================================================================== */
+
+/* Header Filter Button & Outside Clear Button */
+.gh-multi-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 5px 10px;
+  background-color: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-fg-default);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gh-multi-filter-btn:hover {
+  background-color: var(--color-canvas-inset);
+  border-color: var(--color-border-muted);
+}
+
+.gh-multi-filter-btn.has-active {
+  border-color: var(--color-accent-fg);
+  background-color: rgba(47, 129, 247, 0.1);
+  color: var(--color-accent-fg);
+}
+
+.gh-multi-filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background-color: var(--color-accent-emphasis);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  line-height: 1;
+}
+
+.gh-clear-filters-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px dashed var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-fg-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gh-clear-filters-btn:hover {
+  border-color: var(--color-danger-fg);
+  color: var(--color-danger-fg);
+  background-color: rgba(248, 81, 73, 0.1);
+}
+
+/* Active Filter Pills Bar */
+.active-filter-bar {
+  padding: 8px 16px;
+  background-color: var(--color-canvas-subtle);
+  border-bottom: 1px solid var(--color-border-muted);
+  display: flex;
+  align-items: center;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.active-filter-pills-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.active-filter-label {
+  color: var(--color-fg-muted);
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.active-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 14px;
+  padding: 2px 8px;
+  font-size: 11px;
+  transition: border-color 0.15s ease;
+}
+
+.active-filter-pill:hover {
+  border-color: var(--color-accent-fg);
+}
+
+.active-filter-pill-prefix {
+  color: var(--color-fg-muted);
+  font-weight: 500;
+}
+
+.active-filter-pill-val {
+  color: var(--color-fg-default);
+  font-weight: 600;
+}
+
+.active-filter-pill-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  padding: 1px;
+  margin-left: 2px;
+  border-radius: 50%;
+  transition: color 0.15s ease;
+}
+
+.active-filter-pill-remove:hover {
+  color: var(--color-danger-fg);
+}
+
+.active-filter-clear-all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--color-accent-fg);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 6px;
+  margin-left: 4px;
+  transition: opacity 0.15s ease;
+}
+
+.active-filter-clear-all-link:hover {
+  text-decoration: underline;
+}
+
+/* Master-Detail Multi-Filter Modal */
+.multi-filter-modal {
+  width: 740px;
+  max-width: 95vw;
+  height: 540px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.multi-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border-default);
+  background-color: var(--color-canvas-default);
+}
+
+.multi-filter-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.multi-filter-header-title h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-fg-default);
+}
+
+.multi-filter-title-icon {
+  color: var(--color-accent-fg);
+}
+
+.filter-count-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  background-color: rgba(47, 129, 247, 0.15);
+  color: var(--color-accent-fg);
+  border: 1px solid rgba(47, 129, 247, 0.3);
+  border-radius: 10px;
+}
+
+.multi-filter-body {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left Navigation Column */
+.multi-filter-nav {
+  background-color: var(--color-canvas-subtle);
+  border-right: 1px solid var(--color-border-default);
+  padding: 8px 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.multi-filter-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--color-fg-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s ease;
+}
+
+.multi-filter-nav-item:hover {
+  background-color: var(--color-canvas-default);
+  color: var(--color-fg-default);
+}
+
+.multi-filter-nav-item.active {
+  background-color: var(--color-canvas-default);
+  border-left-color: var(--color-accent-fg);
+  color: var(--color-fg-default);
+  font-weight: 600;
+}
+
+.multi-filter-nav-label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.multi-filter-nav-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.multi-filter-selected-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background-color: var(--color-accent-emphasis);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.multi-filter-avail-count {
+  font-size: 11px;
+  color: var(--color-fg-muted);
+}
+
+/* Right Detail Column */
+.multi-filter-detail {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-canvas-default);
+  overflow: hidden;
+}
+
+.multi-filter-detail-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border-muted);
+  gap: 10px;
+}
+
+.multi-filter-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.multi-filter-search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--color-fg-muted);
+  pointer-events: none;
+}
+
+.multi-filter-search-input {
+  width: 100%;
+  padding: 6px 28px 6px 30px;
+  background-color: var(--color-canvas-inset);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-fg-default);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.multi-filter-search-input:focus {
+  border-color: var(--color-accent-fg);
+  box-shadow: 0 0 0 1px var(--color-accent-fg);
+}
+
+.multi-filter-clear-search {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  padding: 2px;
+}
+
+.multi-filter-batch-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.multi-filter-batch-btn {
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.multi-filter-batch-btn:hover:not(:disabled) {
+  border-color: var(--color-border-muted);
+  color: var(--color-fg-default);
+  background-color: var(--color-canvas-subtle);
+}
+
+.multi-filter-batch-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Options List */
+.multi-filter-options-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.multi-filter-empty-options {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--color-fg-muted);
+  font-size: 13px;
+}
+
+.multi-filter-option-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+  user-select: none;
+}
+
+.multi-filter-option-row:hover {
+  background-color: var(--color-canvas-subtle);
+}
+
+.multi-filter-option-row.selected {
+  background-color: rgba(47, 129, 247, 0.08);
+}
+
+.multi-filter-checkbox-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.gh-native-checkbox {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--color-accent-fg);
+  cursor: pointer;
+  margin: 0;
+}
+
+.multi-filter-option-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.multi-filter-option-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.multi-filter-label-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.multi-filter-option-title {
+  font-size: 13px;
+  color: var(--color-fg-default);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.multi-filter-option-count {
+  font-size: 11px;
+  color: var(--color-fg-muted);
+  flex-shrink: 0;
+}
+
+/* Modal Footer */
+.multi-filter-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-top: 1px solid var(--color-border-default);
+  background-color: var(--color-canvas-subtle);
+}
+
+.multi-filter-status-text {
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
+
+.multi-filter-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: none;
+  color: var(--color-danger-fg);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 6px;
+  transition: opacity 0.15s ease;
+}
+
+.multi-filter-reset-btn:hover {
+  text-decoration: underline;
+}
+
+.multi-filter-apply-btn {
+  padding: 5px 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
