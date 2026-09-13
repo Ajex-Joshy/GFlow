@@ -106,14 +106,20 @@ export default function PRCard({
               aria-label={`Copy gh pr checkout ${pr.number}`}
             >
               {copiedCheckout ? (
-                <>
-                  <Check size={11} strokeWidth={2.8} />
-                  <span className="copied-text">Copied!</span>
-                </>
+                <Check size={11} strokeWidth={2.8} />
               ) : (
                 <Copy size={11} />
               )}
             </button>
+
+            {copiedCheckout && (
+              <div className="gh-copy-popover" role="status" aria-live="polite">
+                <Check size={12} strokeWidth={3} className="gh-copy-popover-check" />
+                <span className="gh-copy-popover-title">Copied:</span>
+                <code className="gh-copy-popover-cmd">gh pr checkout {pr.number}</code>
+                <div className="gh-copy-popover-arrow" />
+              </div>
+            )}
           </div>
 
           {pr.isDraft && (

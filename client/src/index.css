@@ -572,6 +572,7 @@ input {
 }
 
 .pr-number-box {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -587,8 +588,7 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  padding: 1px 4px;
+  padding: 2px 4px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
@@ -618,12 +618,84 @@ input {
   background-color: var(--color-success-subtle);
   border-color: var(--color-success-emphasis);
   color: var(--color-success-fg);
+}
+
+/* Floating Copied Checkout Command Popover */
+.gh-copy-popover {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: var(--color-canvas-overlay);
+  border: 1px solid var(--color-border-default);
+  box-shadow: 0 4px 14px rgba(1, 4, 9, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: 0.3rem 0.55rem;
+  font-size: 11px;
+  color: var(--color-fg-default);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+  animation: ghPopoverFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.gh-copy-popover-check {
+  color: var(--color-success-fg);
+  flex-shrink: 0;
+}
+
+.gh-copy-popover-title {
+  color: var(--color-fg-muted);
   font-weight: 500;
 }
 
-.gh-pr-copy-btn .copied-text {
-  font-size: 10px;
-  line-height: 1;
+.gh-copy-popover-cmd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background-color: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.08rem 0.35rem;
+  color: var(--color-accent-fg);
+  font-weight: 500;
+}
+
+.gh-copy-popover-arrow {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--color-border-default);
+}
+
+.gh-copy-popover-arrow::after {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  left: -4px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid var(--color-canvas-overlay);
+}
+
+@keyframes ghPopoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .gh-label {
