@@ -1843,3 +1843,42 @@ kbd.gh-kbd {
   border-color: var(--color-accent-emphasis);
   outline: none;
 }
+
+/* SLA Day Selector Pills (Primer Dark Style) */
+.sla-days-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+.sla-day-pill {
+  padding: 0.3rem 0.75rem;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  background-color: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sla-day-pill:hover {
+  border-color: var(--color-border-muted);
+  color: var(--color-fg-default);
+  background-color: var(--color-btn-hover-bg);
+}
+
+.sla-day-pill.active {
+  background-color: var(--color-accent-emphasis);
+  border-color: var(--color-accent-emphasis);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}

@@ -1,12 +1,15 @@
 /**
  * Review SLA & Turnaround Duration Utilities
- * Calculates elapsed review wait times, handles weekend pauses, and determines urgency levels.
+ * Calculates elapsed review wait times, handles flexible day exclusions, and determines urgency levels.
  */
 
 /**
- * Calculates elapsed hours from a start date, optionally pausing during weekends (Saturday & Sunday).
+ * Calculates elapsed hours from a start date, optionally pausing during specified excluded days.
+ * @param {string|Date} startDate - When the wait began
+ * @param {number[]} excludedDays - Array of day numbers (0 = Sun, 1 = Mon, ..., 6 = Sat) to pause on
+ * @param {Date} [referenceDate] - Current timestamp
  */
-export function calculateElapsedHours(startDate, pauseWeekends = true, referenceDate = new Date()) {
+export function calculateElapsedHours(startDate, excludedDays = [0, 6], referenceDate = new Date()) {
   const start = new Date(startDate);
   const end = new Date(referenceDate);
 
@@ -14,11 +17,12 @@ export function calculateElapsedHours(startDate, pauseWeekends = true, reference
     return 0;
   }
 
-  if (!pauseWeekends) {
+  const daysToExclude = Array.isArray(excludedDays) ? excludedDays : [];
+  if (daysToExclude.length === 0) {
     return (end.getTime() - start.getTime()) / (1000 * 60 * 60);
   }
 
-  // Step through time in 1-hour increments to accurately subtract weekend hours
+  // Step through time in 1-hour increments to accurately subtract excluded days
   let totalMs = 0;
   let current = new Date(start.getTime());
   const ONE_HOUR = 60 * 60 * 1000;
@@ -26,9 +30,8 @@ export function calculateElapsedHours(startDate, pauseWeekends = true, reference
   while (current < end) {
     const next = new Date(Math.min(current.getTime() + ONE_HOUR, end.getTime()));
     const day = current.getDay(); // 0 is Sunday, 6 is Saturday
-    const isWeekend = day === 0 || day === 6;
 
-    if (!isWeekend) {
+    if (!daysToExclude.includes(day)) {
       totalMs += next.getTime() - current.getTime();
     }
     current = next;
@@ -62,11 +65,11 @@ export function getReviewSlaStatus(pr, settings = {}) {
   const dateStr = pr.reviewRequestedAt || pr.createdAt;
   if (!dateStr) return null;
 
-  const pauseWeekends = settings.pauseSlaOnWeekends !== false;
+  const excludedDays = settings.slaExcludedDays ?? (settings.pauseSlaOnWeekends === false ? [] : [0, 6]);
   const warningHours = Number(settings.reviewWarningHours) || 12;
   const overdueHours = Number(settings.reviewOverdueHours) || 24;
 
-  const elapsedHours = calculateElapsedHours(dateStr, pauseWeekends);
+  const elapsedHours = calculateElapsedHours(dateStr, excludedDays);
   const formattedDuration = formatSlaDuration(elapsedHours);
 
   let status = 'healthy';
@@ -105,11 +108,11 @@ export function getCreatedSlaStatus(pr, settings = {}) {
   const dateStr = pr.createdAt;
   if (!dateStr) return null;
 
-  const pauseWeekends = settings.pauseSlaOnWeekends !== false;
+  const excludedDays = settings.slaExcludedDays ?? (settings.pauseSlaOnWeekends === false ? [] : [0, 6]);
   const nudgeHours = Number(settings.createdNudgeHours) || 24;
   const stalledHours = Number(settings.createdStalledHours) || 48;
 
-  const elapsedHours = calculateElapsedHours(dateStr, pauseWeekends);
+  const elapsedHours = calculateElapsedHours(dateStr, excludedDays);
   const formattedDuration = formatSlaDuration(elapsedHours);
 
   if (elapsedHours >= stalledHours) {

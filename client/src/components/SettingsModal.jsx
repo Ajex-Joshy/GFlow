@@ -107,10 +107,25 @@ export default function SettingsModal({
     onSaveSettings(updated);
   };
 
-  const handleToggleWeekendPause = () => {
+  const DAYS_OF_WEEK = [
+    { day: 1, label: 'Mon' },
+    { day: 2, label: 'Tue' },
+    { day: 3, label: 'Wed' },
+    { day: 4, label: 'Thu' },
+    { day: 5, label: 'Fri' },
+    { day: 6, label: 'Sat' },
+    { day: 0, label: 'Sun' },
+  ];
+
+  const handleToggleExcludedDay = (dayNum) => {
+    const currentDays = currentSettings.slaExcludedDays ?? (currentSettings.pauseSlaOnWeekends === false ? [] : [0, 6]);
+    const updatedDays = currentDays.includes(dayNum)
+      ? currentDays.filter((d) => d !== dayNum)
+      : [...currentDays, dayNum];
+
     const updated = {
       ...currentSettings,
-      pauseSlaOnWeekends: currentSettings.pauseSlaOnWeekends === false ? true : false,
+      slaExcludedDays: updatedDays,
     };
     setCurrentSettings(updated);
     onSaveSettings(updated);
@@ -470,24 +485,32 @@ export default function SettingsModal({
                   </div>
                 </div>
 
-                {/* Weekend Pause Toggle */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '0.85rem', borderTop: '1px solid var(--color-border-subtle)' }}>
-                  <div>
-                    <h4 style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-fg-default)' }}>
-                      Pause SLA Timers on Weekends
-                    </h4>
-                    <p style={{ fontSize: '11px', color: 'var(--color-fg-muted)', marginTop: '0.2rem' }}>
-                      Exclude Saturday and Sunday hours from turnaround calculations so Friday PRs do not trigger false alarms on Monday.
-                    </p>
+                {/* Pause SLA Timers on Specific Days */}
+                <div style={{ marginTop: '1rem', paddingTop: '0.85rem', borderTop: '1px solid var(--color-border-subtle)' }}>
+                  <h4 style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-fg-default)' }}>
+                    Pause SLA Timers on Specific Days
+                  </h4>
+                  <p style={{ fontSize: '11px', color: 'var(--color-fg-muted)', marginTop: '0.2rem', marginBottom: '0.6rem' }}>
+                    Select which days do not count towards SLA turnaround (e.g. click Sat to uncheck if your team works on Saturdays):
+                  </p>
+                  <div className="sla-days-pill-group">
+                    {DAYS_OF_WEEK.map(({ day, label }) => {
+                      const currentDays = currentSettings.slaExcludedDays ?? (currentSettings.pauseSlaOnWeekends === false ? [] : [0, 6]);
+                      const isSelected = currentDays.includes(day);
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          className={`sla-day-pill ${isSelected ? 'active' : ''}`}
+                          onClick={() => handleToggleExcludedDay(day)}
+                          title={`${label}: Click to ${isSelected ? 'count as working day' : 'exclude from SLA calculations'}`}
+                        >
+                          <span>{label}</span>
+                          {isSelected && <span>✓</span>}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <label className="gh-toggle-label">
-                    <input
-                      type="checkbox"
-                      checked={currentSettings.pauseSlaOnWeekends !== false}
-                      onChange={handleToggleWeekendPause}
-                    />
-                    <span className="gh-toggle-slider" />
-                  </label>
                 </div>
               </div>
             </div>

@@ -22,7 +22,7 @@ export const DEFAULT_SETTINGS = {
   reviewOverdueHours: 24,
   createdNudgeHours: 24,
   createdStalledHours: 48,
-  pauseSlaOnWeekends: true,
+  slaExcludedDays: [0, 6], // 0 = Sunday, 6 = Saturday (Default weekend days off)
 };
 
 /**
