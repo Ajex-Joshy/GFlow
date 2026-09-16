@@ -53,14 +53,42 @@ function saveDiskCache(payload) {
 const summaryCache = new Map();
 const SUMMARY_CACHE_TTL_MS = 15 * 1000;
 
+function isActualRateLimit(err) {
+  if (!err) return false;
+  if (err.status === 429) return true;
+  const msg = (err.message || "").toLowerCase();
+  if (
+    msg.includes("rate limit") ||
+    msg.includes("rate-limit") ||
+    msg.includes("secondary rate") ||
+    msg.includes("abuse detection") ||
+    msg.includes("too many requests")
+  ) {
+    return true;
+  }
+  const remaining =
+    err.headers?.["x-ratelimit-remaining"] ||
+    err.response?.headers?.["x-ratelimit-remaining"];
+  if (remaining !== undefined && (remaining === "0" || remaining === 0)) {
+    return true;
+  }
+  return false;
+}
+
 function formatResetTime(err) {
-  const resetSec = err?.headers?.['x-ratelimit-reset'] || err?.response?.headers?.['x-ratelimit-reset'];
+  const resetSec =
+    err?.headers?.["x-ratelimit-reset"] ||
+    err?.response?.headers?.["x-ratelimit-reset"];
   if (resetSec) {
     const resetDate = new Date(Number(resetSec) * 1000);
-    const mins = Math.max(1, Math.round((resetDate.getTime() - Date.now()) / 60000));
-    return `Resets in ~${mins}m (at ${resetDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })})`;
+    const diffMs = resetDate.getTime() - Date.now();
+    if (diffMs <= 0) {
+      return "Rate limit window has reset.";
+    }
+    const mins = Math.max(1, Math.round(diffMs / 60000));
+    return `Resets in ~${mins}m (at ${resetDate.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })})`;
   }
-  return 'Resets at the top of the hour.';
+  return "Resets at the top of the hour.";
 }
 
 /**
@@ -69,13 +97,16 @@ function formatResetTime(err) {
  */
 router.get('/summary', async (req, res) => {
   const isForce = req.query.force === 'true';
+  if (isForce) {
+    summaryCache.delete(req.ghToken);
+  }
   const memCached = summaryCache.get(req.ghToken);
   const diskCached = loadDiskCache();
   const cached = memCached?.payload || diskCached;
   const now = Date.now();
 
-  // If not forced and memory cache is fresh (< 15s), serve immediately
-  if (!isForce && memCached && (now - memCached.timestamp < SUMMARY_CACHE_TTL_MS)) {
+  // If not forced and memory cache is fresh (< 15s) and NOT stale, serve immediately
+  if (!isForce && memCached && !memCached.payload?.isStale && (now - memCached.timestamp < SUMMARY_CACHE_TTL_MS)) {
     console.log('[Cache] Serving PR summary from fresh in-memory cache');
     return res.json(memCached.payload);
   }
@@ -88,13 +119,11 @@ router.get('/summary', async (req, res) => {
     const orgs = user.organizations?.nodes || [];
 
     let rateLimitError = null;
+    const failedCategories = new Set();
     const handleSubError = (category, err) => {
       console.error(`Error fetching ${category} PRs:`, err.message);
-      if (
-        err.message?.toLowerCase().includes('rate limit') ||
-        err.status === 403 ||
-        err.status === 429
-      ) {
+      failedCategories.add(category);
+      if (isActualRateLimit(err)) {
         rateLimitError = err;
       }
       return [];
@@ -108,15 +137,23 @@ router.get('/summary', async (req, res) => {
       getTeamPRs(req.ghToken, username, orgs).catch((err) => handleSubError('team', err)),
     ]);
 
-    // If a rate limit was caught during any sub-query, NEVER overwrite cache with empty arrays!
-    if (rateLimitError) {
-      console.warn('[Cache] GitHub rate limit hit during sub-queries. Preserving cache.');
+    // Only fall back to cache for categories that actually threw errors
+    const finalReviewerPRs = failedCategories.has('reviewer') && cached?.data?.reviewer ? cached.data.reviewer : reviewerPRs;
+    const finalRaisedPRs = failedCategories.has('raised') && cached?.data?.raised ? cached.data.raised : raisedPRs;
+    const finalRaisedMergedPRs = failedCategories.has('raised merged') && cached?.data?.raisedMerged ? cached.data.raisedMerged : raisedMergedPRs;
+    const finalApprovedPRs = failedCategories.has('approved') && cached?.data?.approved ? cached.data.approved : approvedPRs;
+    const finalTeamPRs = failedCategories.has('team') && cached?.data?.team ? cached.data.team : teamPRs;
+
+    // Only mark whole response as stale if ALL 5 categories failed
+    const allFailed = failedCategories.size >= 5;
+    if (allFailed && rateLimitError) {
+      console.warn('[Cache] All queries failed due to rate limit. Serving preserved cache.');
       if (cached) {
         return res.json({
           ...cached,
           isStale: true,
           rateLimited: true,
-          staleReason: `GitHub API hourly rate limit reached. ${formatResetTime(rateLimitError)}`,
+          staleReason: `GitHub API rate limit reached. ${formatResetTime(rateLimitError)}`,
         });
       }
 
@@ -128,7 +165,7 @@ router.get('/summary', async (req, res) => {
     }
 
     // Compute total unresolved comments across all raised PRs
-    const totalUnresolvedRaisedComments = raisedPRs.reduce(
+    const totalUnresolvedRaisedComments = finalRaisedPRs.reduce(
       (sum, pr) => sum + (pr.unresolvedCommentsCount || 0),
       0
     );
@@ -136,20 +173,22 @@ router.get('/summary', async (req, res) => {
     const payload = {
       user,
       organizations: orgs,
+      isStale: false,
+      rateLimited: false,
       counts: {
-        reviewer: reviewerPRs.length,
-        raised: raisedPRs.length,
-        raisedMerged: raisedMergedPRs.length,
-        approved: approvedPRs.length,
-        team: teamPRs.length,
+        reviewer: finalReviewerPRs.length,
+        raised: finalRaisedPRs.length,
+        raisedMerged: finalRaisedMergedPRs.length,
+        approved: finalApprovedPRs.length,
+        team: finalTeamPRs.length,
         totalUnresolvedRaisedComments,
       },
       data: {
-        reviewer: reviewerPRs,
-        raised: raisedPRs,
-        raisedMerged: raisedMergedPRs,
-        approved: approvedPRs,
-        team: teamPRs,
+        reviewer: finalReviewerPRs,
+        raised: finalRaisedPRs,
+        raisedMerged: finalRaisedMergedPRs,
+        approved: finalApprovedPRs,
+        team: finalTeamPRs,
       },
       fetchedAt: new Date().toISOString(),
     };
@@ -158,20 +197,28 @@ router.get('/summary', async (req, res) => {
     saveDiskCache(payload);
     res.json(payload);
   } catch (error) {
-    console.error('Error fetching PR summary:', error.message);
-    const isRateLimit =
-      error.message?.toLowerCase().includes('rate limit') ||
-      error.status === 403 ||
-      error.status === 429;
+    console.error("Error fetching PR summary:", error.message);
+    try {
+      fs.writeFileSync("./server/debug.log", JSON.stringify({
+        message: error.message,
+        status: error.status,
+        headers: error.headers || error.response?.headers,
+        stack: error.stack,
+        time: new Date().toISOString()
+      }, null, 2));
+    } catch(e) {}
+    const isRateLimit = isActualRateLimit(error);
 
-    // If rate limited but we have cached data (memory or disk), serve it with stale notice
+    // If cached data exists (memory or disk), serve it with appropriate stale reason
     if (cached) {
       console.log('[Cache] Serving preserved cached PRs during outer error');
       return res.json({
         ...cached,
         isStale: true,
         rateLimited: isRateLimit,
-        staleReason: `GitHub API hourly rate limit reached. ${formatResetTime(error)}`,
+        staleReason: isRateLimit
+          ? `GitHub API hourly rate limit reached. ${formatResetTime(error)}`
+          : `Live sync temporarily unavailable: ${error.message || "Network error"}`,
       });
     }
 
@@ -191,8 +238,7 @@ router.get('/summary', async (req, res) => {
 });
 
 /**
- * GET /api/prs/reviewer
- */
+ *  */
 router.get('/reviewer', async (req, res) => {
   try {
     const user = await getUserProfile(req.ghToken);

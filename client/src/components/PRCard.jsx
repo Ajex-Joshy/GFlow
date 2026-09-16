@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   GitPullRequest,
   GitPullRequestDraft,
@@ -10,7 +10,11 @@ import {
   FileCode2,
   Copy,
   Bell,
+  Tag,
+  StickyNote,
 } from 'lucide-react';
+import { getPRCustomData, subscribeCustomData } from '../utils/customLabelsStore';
+import PRLabelNotePopover from './PRLabelNotePopover';
 import { getReviewSlaStatus, getCreatedSlaStatus, calculateElapsedHours } from '../utils/slaUtils';
 import {
   formatPRTimestamp,
@@ -62,6 +66,17 @@ export default function PRCard({
   const reviewWaitTimerFormatted = formatDurationCompact(pr.reviewRequestedAt || pr.createdAt);
   const reviewSla = isReviewerTab ? getReviewSlaStatus(pr, settings) : null;
   const createdSla = (isRaisedTab || isTeamTab) ? getCreatedSlaStatus(pr, settings) : null;
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [customData, setCustomData] = useState(() => getPRCustomData(pr));
+
+  useEffect(() => {
+    setCustomData(getPRCustomData(pr));
+    const unsubscribe = subscribeCustomData(() => {
+      setCustomData(getPRCustomData(pr));
+    });
+    return unsubscribe;
+  }, [pr]);
 
   // When a specific single organization or personal is selected, omit duplicate owner name
   const repoDisplayName = useMemo(() => {
@@ -234,6 +249,60 @@ export default function PRCard({
               </span>
             );
           })}
+
+          {/* GFlow Internal Labels */}
+          {customData.labels?.map((label) => (
+            <span
+              key={label.id}
+              className="gflow-card-label"
+              style={{
+                backgroundColor: `${label.color}1c`,
+                color: label.color,
+                borderColor: `${label.color}50`,
+              }}
+              title={`GFlow internal label: ${label.name} (Click to manage)`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsPopoverOpen(true);
+              }}
+            >
+              <Tag size={10} className="gflow-card-label-icon" />
+              <span>{label.name}</span>
+            </span>
+          ))}
+
+          {/* GFlow Internal Note Chip */}
+          {customData.note && (
+            <span
+              className="gflow-card-note-chip"
+              title={`GFlow note: "${customData.note}" (Click to edit)`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsPopoverOpen(true);
+              }}
+            >
+              <StickyNote size={11} className="gflow-card-note-icon" />
+              <span className="gflow-card-note-text">{customData.note}</span>
+            </span>
+          )}
+
+          {/* GFlow Add Tag / Note Action Button */}
+          <button
+            type="button"
+            className="gflow-card-tag-btn"
+            title="Add or edit GFlow internal labels & notes"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsPopoverOpen(true);
+            }}
+            aria-label={`Manage GFlow annotations for PR ${pr.number}`}
+          >
+            <Tag size={11} />
+            <span className="gflow-card-tag-btn-text">Tag</span>
+          </button>
         </div>
 
         {/* Secondary Meta Row: org/repo, Exact timestamp, Opened by */}
@@ -452,6 +521,15 @@ export default function PRCard({
           </div>
         )}
       </div>
+
+      {/* GFlow Annotations Popover */}
+      {isPopoverOpen && (
+        <PRLabelNotePopover
+          pr={pr}
+          isOpen={isPopoverOpen}
+          onClose={() => setIsPopoverOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,8 +1,23 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import { exchangeOAuthCode, getUserProfile } from '../services/githubService.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const CACHE_FILE = path.join(__dirname, '../../.cache/summary_cache.json');
+function getDiskCachedUser() {
+  try {
+    if (fs.existsSync(CACHE_FILE)) {
+      const data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+      return data.user || null;
+    }
+  } catch (e) {}
+  return null;
+}
 
 /**
  * GET /api/auth/config
@@ -124,26 +139,17 @@ router.get('/me', requireAuth, async (req, res) => {
     res.json({
       authenticated: true,
       user: profile,
+      rateLimited: false,
     });
   } catch (error) {
     console.error('Fetch me error:', error.message);
-    const isRateLimit =
-      error.message?.toLowerCase().includes('rate limit') ||
-      error.status === 403 ||
-      error.status === 429;
+    const fallbackUser = userProfileCache.get(req.ghToken) || getDiskCachedUser();
 
-    if (isRateLimit) {
-      if (userProfileCache.has(req.ghToken)) {
-        return res.json({
-          authenticated: true,
-          user: userProfileCache.get(req.ghToken),
-          rateLimited: true,
-        });
-      }
-      return res.status(429).json({
+    if (fallbackUser) {
+      return res.json({
         authenticated: true,
-        rateLimited: true,
-        error: 'GitHub API rate limit exceeded. Your session is active; retrying shortly.',
+        user: fallbackUser,
+        rateLimited: false,
       });
     }
 

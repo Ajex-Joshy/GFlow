@@ -8,6 +8,17 @@ import prRoutes from './routes/pr.routes.js';
 dotenv.config();
 
 const app = express();
+app.set("etag", false);
+
+// Prevent HTTP 304 caching on dynamic API endpoints
+app.use("/api", (req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  res.set("Surrogate-Control", "no-store");
+  delete req.headers["if-none-match"];
+  next();
+});
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 // CORS configuration supporting local dev, Vercel deployments, and custom domains

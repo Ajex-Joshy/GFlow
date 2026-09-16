@@ -15,6 +15,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { getReviewSlaStatus, getCreatedSlaStatus } from '../utils/slaUtils';
+import { getPRCustomData } from '../utils/customLabelsStore';
 
 export default function MultiFilterModal({
   isOpen,
@@ -126,6 +127,22 @@ export default function MultiFilterModal({
         };
         existing.count += 1;
         labelsMap.set(lbl.name, existing);
+      });
+
+      // 5b. GFlow Custom Labels
+      const customPR = getPRCustomData(pr);
+      (customPR.labels || []).forEach((lbl) => {
+        if (!lbl?.name) return;
+        const key = `[GFlow] ${lbl.name}`;
+        const existing = labelsMap.get(key) || {
+          id: key,
+          label: `${lbl.name} (GFlow)`,
+          color: lbl.color,
+          isGFlow: true,
+          count: 0,
+        };
+        existing.count += 1;
+        labelsMap.set(key, existing);
       });
 
       // 6. SLA Urgency

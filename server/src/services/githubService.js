@@ -18,27 +18,17 @@ const createClient = (token) => {
 export const getUserProfile = async (token) => {
   const client = createClient(token);
   
-  // 1. Fetch user viewer info
-  const viewerData = await client(`
-    query {
-      viewer {
-        login
-        name
-        avatarUrl
-        url
-        bio
-      }
-    }
-  `);
-
-  const viewer = viewerData.viewer;
-
-  // 2. Fetch organizations (requires read:org scope)
+  // Single consolidated query for profile & organizations
   try {
-    const orgsData = await client(`
+    const data = await client(`
       query {
         viewer {
-          organizations(first: 50) {
+          login
+          name
+          avatarUrl
+          url
+          bio
+          organizations(first: 30) {
             nodes {
               id
               login
@@ -50,13 +40,25 @@ export const getUserProfile = async (token) => {
         }
       }
     `);
-    viewer.organizations = orgsData.viewer?.organizations || { nodes: [] };
+    return data.viewer;
   } catch (err) {
-    console.warn('Organizations query warning (read:org scope may be needed):', err.message);
+    // If organizations sub-field failed (e.g. read:org scope limitation), fall back to basic viewer
+    console.warn("Unified viewer query failed, falling back to basic profile:", err.message);
+    const basicData = await client(`
+      query {
+        viewer {
+          login
+          name
+          avatarUrl
+          url
+          bio
+        }
+      }
+    `);
+    const viewer = basicData.viewer;
     viewer.organizations = { nodes: [] };
+    return viewer;
   }
-
-  return viewer;
 };
 
 /**
@@ -316,22 +318,36 @@ export const getReviewerPRs = async (token, username) => {
  */
 export const getRaisedPRs = async (token, username) => {
   const client = createClient(token);
-  const queryString = `is:open is:pr author:@me archived:false`;
-
-  const data = await client(`
-    query ($queryString: String!) {
-      search(query: $queryString, type: ISSUE, first: 50) {
-        issueCount
-        nodes {
-          ... on PullRequest {
-            ${PR_FIELDS}
+  try {
+    // 1. Direct viewer query (uses core GraphQL quota, zero Search API consumption)
+    const data = await client(`
+      query {
+        viewer {
+          pullRequests(first: 50, states: [OPEN], orderBy: {field: CREATED_AT, direction: DESC}) {
+            nodes {
+              ${PR_FIELDS}
+            }
           }
         }
       }
-    }
-  `, { queryString });
-
-  return (data.search?.nodes || []).map((node) => formatPRNode(node));
+    `);
+    return (data.viewer?.pullRequests?.nodes || []).map((node) => formatPRNode(node));
+  } catch (err) {
+    console.warn("Direct viewer.pullRequests query fallback:", err.message);
+    const queryString = `is:open is:pr author:@me archived:false`;
+    const data = await client(`
+      query ($queryString: String!) {
+        search(query: $queryString, type: ISSUE, first: 50) {
+          nodes {
+            ... on PullRequest {
+              ${PR_FIELDS}
+            }
+          }
+        }
+      }
+    `, { queryString });
+    return (data.search?.nodes || []).map((node) => formatPRNode(node));
+  }
 };
 
 /**
@@ -339,22 +355,36 @@ export const getRaisedPRs = async (token, username) => {
  */
 export const getRaisedMergedPRs = async (token, username) => {
   const client = createClient(token);
-  const queryString = `is:merged is:pr author:@me archived:false`;
-
-  const data = await client(`
-    query ($queryString: String!) {
-      search(query: $queryString, type: ISSUE, first: 30) {
-        issueCount
-        nodes {
-          ... on PullRequest {
-            ${PR_FIELDS}
+  try {
+    // 1. Direct viewer query (uses core GraphQL quota, zero Search API consumption)
+    const data = await client(`
+      query {
+        viewer {
+          pullRequests(first: 30, states: [MERGED], orderBy: {field: CREATED_AT, direction: DESC}) {
+            nodes {
+              ${PR_FIELDS}
+            }
           }
         }
       }
-    }
-  `, { queryString });
-
-  return (data.search?.nodes || []).map((node) => formatPRNode(node));
+    `);
+    return (data.viewer?.pullRequests?.nodes || []).map((node) => formatPRNode(node));
+  } catch (err) {
+    console.warn("Direct viewer.pullRequests merged query fallback:", err.message);
+    const queryString = `is:merged is:pr author:@me archived:false`;
+    const data = await client(`
+      query ($queryString: String!) {
+        search(query: $queryString, type: ISSUE, first: 30) {
+          nodes {
+            ... on PullRequest {
+              ${PR_FIELDS}
+            }
+          }
+        }
+      }
+    `, { queryString });
+    return (data.search?.nodes || []).map((node) => formatPRNode(node));
+  }
 };
 
 /**
@@ -395,33 +425,69 @@ export const getApprovedPRs = async (token, username) => {
  */
 export const getTeamPRs = async (token, username, orgs = []) => {
   const client = createClient(token);
-  
-  // Build search qualifiers: e.g. "org:org1 org:org2 user:username"
   const orgLogins = (orgs || []).map((o) => o.login || o).filter(Boolean);
-  const scopeParts = orgLogins.map((login) => `org:${login}`);
-  if (username) {
-    scopeParts.push(`user:${username}`);
-  }
-  
-  const scopeFilter = scopeParts.length > 0 ? scopeParts.join(' ') : `user:${username}`;
-  const queryString = `is:open is:pr ${scopeFilter} archived:false`;
 
-  const data = await client(`
-    query ($queryString: String!) {
-      search(query: $queryString, type: ISSUE, first: 100) {
-        issueCount
-        nodes {
-          ... on PullRequest {
-            ${PR_FIELDS}
+  if (orgLogins.length === 0) {
+    const queryString = `is:open is:pr user:${username} archived:false`;
+    try {
+      const data = await client(`
+        query ($queryString: String!) {
+          search(query: $queryString, type: ISSUE, first: 100) {
+            nodes {
+              ... on PullRequest {
+                ${PR_FIELDS}
+              }
+            }
           }
         }
-      }
+      `, { queryString });
+      return (data.search?.nodes || []).map((node) =>
+        formatPRNode(node, { currentUserLogin: username })
+      );
+    } catch (err) {
+      console.warn("Personal team PR query warning:", err.message);
+      return [];
     }
-  `, { queryString });
+  }
 
-  return (data.search?.nodes || []).map((node) =>
-    formatPRNode(node, { currentUserLogin: username })
+  // Query organizations with allSettled so one SAML-protected or restricted org does not crash the entire team query
+  const queryScopes = orgLogins.map((login) => `org:${login}`);
+  if (username) {
+    queryScopes.push(`user:${username}`);
+  }
+
+  const results = await Promise.allSettled(
+    queryScopes.map(async (scope) => {
+      const queryString = `is:open is:pr ${scope} archived:false`;
+      const data = await client(`
+        query ($queryString: String!) {
+          search(query: $queryString, type: ISSUE, first: 50) {
+            nodes {
+              ... on PullRequest {
+                ${PR_FIELDS}
+              }
+            }
+          }
+        }
+      `, { queryString });
+      return data.search?.nodes || [];
+    })
   );
+
+  const prMap = new Map();
+  results.forEach((res) => {
+    if (res.status === "fulfilled") {
+      res.value.forEach((node) => {
+        if (node?.id && !prMap.has(node.id)) {
+          prMap.set(node.id, formatPRNode(node, { currentUserLogin: username }));
+        }
+      });
+    } else {
+      console.warn("Team PR sub-query skipped an inaccessible scope:", res.reason?.message);
+    }
+  });
+
+  return Array.from(prMap.values());
 };
 
 /**

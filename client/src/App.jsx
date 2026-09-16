@@ -11,6 +11,7 @@ import ShortcutsModal from './components/ShortcutsModal';
 import MultiFilterModal from './components/MultiFilterModal';
 import ActiveFilterBar from './components/ActiveFilterBar';
 import { loadSettings, saveSettings, isBotPR } from './utils/filterUtils';
+import { getPRCustomData, subscribeCustomData } from './utils/customLabelsStore';
 import { getCreatedSlaStatus, getReviewSlaStatus } from './utils/slaUtils';
 import { formatRelativeOnly } from './utils/dateFormatter';
 import {
@@ -28,6 +29,13 @@ export default function App() {
 
   const [user, setUser] = useState(() => cachedUserEntry?.user || null);
   const [organizations, setOrganizations] = useState(() => cachedUserEntry?.organizations || []);
+  const [customDataVersion, setCustomDataVersion] = useState(0);
+
+  useEffect(() => {
+    return subscribeCustomData(() => {
+      setCustomDataVersion((v) => v + 1);
+    });
+  }, []);
   const [settings, setSettings] = useState(loadSettings);
   const [selectedOrg, setSelectedOrg] = useState(() => {
     const s = loadSettings();
@@ -103,7 +111,15 @@ export default function App() {
   const [isLoadingPRs, setIsLoadingPRs] = useState(() => !Boolean(cachedPREntry?.data));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [fetchError, setFetchError] = useState('');
-  const [staleNotice, setStaleNotice] = useState(() => cachedPREntry?.staleNotice || null);
+  const [staleNotice, setStaleNotice] = useState(() => {
+    const entry = cachedPREntry?.staleNotice;
+    if (!entry) return null;
+    if (entry.fetchedAt) {
+      const ageMs = Date.now() - new Date(entry.fetchedAt).getTime();
+      if (ageMs > 10 * 60 * 1000) return null;
+    }
+    return entry;
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   // Ticker to force re-render every minute so timestamps like "1m ago" advance in real-time
@@ -557,9 +573,12 @@ export default function App() {
     }
 
     if (activeMultiFilters.labels?.length > 0) {
-      list = list.filter((pr) =>
-        (pr.labels || []).some((l) => activeMultiFilters.labels.includes(l.name))
-      );
+      list = list.filter((pr) => {
+        const ghLabels = (pr.labels || []).map((l) => l.name);
+        const customLabels = (getPRCustomData(pr).labels || []).map((l) => `[GFlow] ${l.name}`);
+        const all = [...ghLabels, ...customLabels];
+        return activeMultiFilters.labels.some((selected) => all.includes(selected));
+      });
     }
 
     if (activeMultiFilters.slaUrgency?.length > 0) {
@@ -581,7 +600,7 @@ export default function App() {
       });
     }
 
-    // Search query filter
+    // Search query filter (matches Title, Repo, Author, Number, GFlow Labels, GFlow Notes)
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       list = list.filter((pr) => {
@@ -589,7 +608,10 @@ export default function App() {
         const matchRepo = pr.repository?.nameWithOwner?.toLowerCase().includes(q);
         const matchAuthor = pr.author?.login?.toLowerCase().includes(q);
         const matchNumber = pr.number?.toString().includes(q);
-        return matchTitle || matchRepo || matchAuthor || matchNumber;
+        const customData = getPRCustomData(pr);
+        const matchCustomLabels = customData.labels?.some((lbl) => lbl.name.toLowerCase().includes(q));
+        const matchCustomNote = customData.note?.toLowerCase().includes(q);
+        return matchTitle || matchRepo || matchAuthor || matchNumber || matchCustomLabels || matchCustomNote;
       });
     }
 
@@ -630,7 +652,7 @@ export default function App() {
     }
 
     return sorted;
-  }, [filteredData, activeTab, raisedStateFilter, onlyUnresolved, onlyOverdue, selectedRepo, searchQuery, sortOrder, activeMultiFilters, settings]);
+  }, [filteredData, activeTab, raisedStateFilter, onlyUnresolved, onlyOverdue, selectedRepo, searchQuery, sortOrder, activeMultiFilters, settings, customDataVersion]);
 
   // Reset keyboard focus when view or search changes
   useEffect(() => {
@@ -862,16 +884,40 @@ export default function App() {
           />
 
           {staleNotice && (
-            <div className="warning-banner">
+            <div className="warning-banner" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <AlertTriangle size={18} style={{ flexShrink: 0, color: 'var(--color-attention-fg)' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', flex: 1 }}>
                 <span>
                   <strong>Showing Cached Data:</strong> {staleNotice.staleReason}{' '}
                   {staleNotice.fetchedAt ? `(Last synced ${formatRelativeOnly(staleNotice.fetchedAt)})` : ''}
                 </span>
                 <span style={{ fontSize: '11px', color: 'var(--color-fg-muted)' }}>
-                  Your pull requests remain fully viewable and interactive. Fresh data will automatically update once GitHub&apos;s hourly limit resets.
+                  Your pull requests remain fully viewable and interactive.
                 </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: 'auto', flexShrink: 0 }}>
+                <button
+                  type="button"
+                  className="gh-btn gh-btn-sm"
+                  onClick={() => loadPRData(false, true)}
+                  disabled={isRefreshing}
+                  style={{ fontSize: '12px', padding: '3px 8px' }}
+                >
+                  {isRefreshing ? 'Checking...' : 'Refresh Live'}
+                </button>
+                <button
+                  type="button"
+                  className="gh-btn gh-btn-sm"
+                  onClick={() => {
+                    setStaleNotice(null);
+                    setCachedPRSummary(prData, organizations, null);
+                  }}
+                  title="Dismiss banner"
+                  style={{ padding: '3px 6px', color: 'var(--color-fg-muted)' }}
+                  aria-label="Dismiss banner"
+                >
+                  <X size={13} />
+                </button>
               </div>
             </div>
           )}

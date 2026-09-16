@@ -40,7 +40,27 @@ export function setCachedUser(user, organizations = []) {
 export function getCachedPRSummary() {
   try {
     const raw = localStorage.getItem(PR_CACHE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.staleNotice) {
+      const noticeTime = parsed.staleNotice.fetchedAt || parsed.cachedAt;
+      if (noticeTime) {
+        const ageMs = Date.now() - new Date(noticeTime).getTime();
+        // Discard stale banners older than 5 minutes
+        if (ageMs > 5 * 60 * 1000) {
+          parsed.staleNotice = null;
+          try {
+            localStorage.setItem(PR_CACHE_KEY, JSON.stringify(parsed));
+          } catch (e) {}
+        }
+      } else {
+        parsed.staleNotice = null;
+        try {
+          localStorage.setItem(PR_CACHE_KEY, JSON.stringify(parsed));
+        } catch (e) {}
+      }
+    }
+    return parsed;
   } catch (e) {
     console.warn('Failed to parse cached PR summary:', e);
     return null;

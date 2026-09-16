@@ -12,13 +12,17 @@ async function request(endpoint, options = {}) {
   const config = {
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store',
+      'Pragma': 'no-cache',
       ...options.headers,
     },
     credentials: 'include', // Send and receive session cookies
     ...options,
   };
 
-  const response = await fetch(`${API_BASE}${endpoint}`, config);
+  const sep = endpoint.includes('?') ? '&' : '?';
+  const url = `${API_BASE}${endpoint}${sep}_t=${Date.now()}`;
+  const response = await fetch(url, config);
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
